@@ -29,24 +29,35 @@ target_lang: <e.g. de>            # one target language per batch
 files: [<target paths to write — in "tree" mode these are the copies under translations/<lang>/…>]
 source_files: [<paths to READ the source from — in "tree"/"inplace" mode these differ from files>]
 specialization_path: specializations/<name>.md
-glossary_path: <optional project glossary — overrides the specialization on any term it defines>
+context: <the product's purpose/audience/register — what it IS. Use it to pick the right SENSE of a
+          word (e.g. "Book" = reserve vs. the object) before translating.>
+glossary_path: <the run glossary (from the research pass) — the authority on term-of-art choices;
+                overrides the specialization on any term it defines>
+queries_mode: report | high-stakes | off      # how to handle uncertainty (default report)
+queries_path: <projects/<slug>/queries-<date>.md — where to log uncertain strings, asynchronously>
 project_conventions: <optional — the target project's i18n contract / brand / tone doc>
 keys_or_scope: <for code, the exact keys to translate; for docs, "whole file" or a section list>
 verify_cmd: <optional gate to run after editing, e.g. "npx tsc --noEmit"; empty for plain files>
 mode: create | update            # create a missing target file, or repair an existing one
 ```
 
-If anything is ambiguous, **STOP and surface to the Lead** — never guess at terminology, never improvise identity tokens.
+If anything is ambiguous, prefer the **glossary** and **context**; if still unsure, make your best
+guess and **log it to the queries file** (see "Handling uncertainty" below) — don't silently guess at
+terminology and don't block the run.
 
 ---
 
 # Step 0 — Read your inputs
 
-1. **The specialization module** at `specialization_path` (default `specializations/general.md`) — its terminology, verbatim rules, tone, and escalation triggers govern this pass.
-2. **The project conventions** at `project_conventions` if supplied — source-of-truth language, placeholder syntax, brand/do-not-translate list, file-format rules.
-3. **The source file(s)** — read from `source_files` (the source language is your contract). In `tree`/`inplace` mode this path differs from the file you write.
-4. **The target file(s)** in `files` — the paths you edit or create. In `tree` mode these are pre-made source-language copies under `translations/<lang>/…`; overwrite their strings with the translation, don't create a second copy.
-5. **The project glossary** at `glossary_path` if supplied — it wins over the specialization on any term it defines.
+1. **The `context`** — read it first. It tells you what the product is, who it's for, and its
+   register, which is what lets you pick the correct *sense* of an ambiguous word before translating.
+2. **The `glossary_path`** — the run glossary from the research pass. It is the authority on which
+   term of art to use per language and which sense a word takes; follow it over your own instinct and
+   over the specialization on any term it defines.
+3. **The specialization module** at `specialization_path` (default `specializations/general.md`) — its terminology, verbatim rules, tone, and escalation triggers govern this pass where the glossary is silent.
+4. **The project conventions** at `project_conventions` if supplied — source-of-truth language, placeholder syntax, brand/do-not-translate list, file-format rules.
+5. **The source file(s)** — read from `source_files` (the source language is your contract). In `tree`/`inplace` mode this path differs from the file you write.
+6. **The target file(s)** in `files` — the paths you edit or create. In `tree` mode these are pre-made source-language copies under `translations/<lang>/…`; overwrite their strings with the translation, don't create a second copy.
 
 ---
 
@@ -131,6 +142,31 @@ Give a **per-file / per-language summary**: what was missing, what was a leftove
 Apply each correction **in order, as written**, scoped to ONLY the listed file+key pairs. Do not re-translate the rest — the Lead accepted everything not on the list. Don't push back; if you believe a correction is wrong, apply it AND add a one-line note. After applying, re-run `verify_cmd` (if any). Green → return the diff. Fails → revert those corrections and surface it. **Cycle cap:** the Lead enforces 2 retries per batch; don't loop indefinitely.
 
 ---
+
+# Handling uncertainty (asynchronous — never block the operator)
+
+When a string's correct translation genuinely depends on context you don't have — a polysemous word
+whose sense is unclear even after reading `context` and the glossary, a UI label that could be a noun
+or a verb, a term with two valid renderings carrying different meaning — do **not** stop and ask
+interactively (that turns the operator into an answer machine). Instead:
+
+1. **Make your best-guess translation** using `context` + glossary + specialization, so the run
+   completes and the string is never left blank or in the source language.
+2. **Log the uncertainty** to `queries_path` (unless `queries_mode: off`), appending an entry:
+   ```
+   ### <source string / term>  (<file> · <key/line>)
+   - Assumption used: <the rendering you shipped as best guess>
+   - Why unsure: <the competing senses / the missing context>
+   - To confirm: <the single question the operator could answer to settle it>
+   ```
+   Keep entries deduplicated — if the same term recurs, log it once with the count.
+3. **Only if `queries_mode: high-stakes`** AND the term is legal/medical/financial AND a wrong guess
+   is materially costly: surface it to the Lead as a blocking open question instead of (or in
+   addition to) logging it. Everything else stays async.
+
+The operator reviews `queries_path` on their own time; when they answer (by editing the glossary or
+notes), the next run treats it as settled — so nothing is asked twice. Note in your report to the
+Lead how many queries you logged.
 
 # Quality gates before declaring a batch complete
 

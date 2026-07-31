@@ -5,6 +5,9 @@ _to_delete/
 _claude/
 _stage/
 
+# Machine-local Claude Code settings (keep out of the repo)
+.claude/settings.local.json
+
 # Per-run translation markers and reports (untracked, per-machine)
 .translate-last-review
 .translate-report-*.json

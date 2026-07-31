@@ -34,12 +34,19 @@ catches them.
 The skill computes scope + per-batch tier, spawns the **Lead once**, and the Lead handles all worker
 spawns and reviews. The single final build/verify runs in the skill.
 
+Before the panel runs, an optional fourth agent — **Researcher** (`.claude/agents/translate-researcher.md`,
+Sonnet) — works out the correct vocabulary for the material (per language) from the project's context
+and a content sample, and writes a reusable glossary the panel translates against. See "Context &
+terminology research" below.
+
 ## The skills
 
-- **`/translate-init`** — `.claude/skills/translate-init/SKILL.md`. Setup step: point it at a
-  project and it detects the source language, formats, and existing target languages, asks for the
-  targets / specialization / output layout, and writes a ready `translation.config.json` at that
-  project's root. Run once per project before the first translate.
+- **`/translate-init`** — `.claude/skills/translate-init/SKILL.md`. A **guided, step-by-step wizard**
+  that builds `translation.config.json`: it detects what it can (source language, formats, existing
+  languages), then walks you through each option one at a time with a plain-language explanation —
+  including the project's **purpose/context**, target languages, specialization, output layout, and
+  the research/uncertainty preferences — and registers the folder as a tracked project. Run once per
+  project before the first translate.
 - **`/translate`** — `.claude/skills/translate/SKILL.md`. The main entry point. Detects the source
   language and file formats, computes scope (changed-since-last-run, an explicit file/glob set, or
   the whole surface), classifies batches, drives the panel, runs one final verify/build, and
@@ -69,6 +76,30 @@ Seeded presets (in `specializations/`):
 and running `/translate --domain <name>` — no code changes. A project **glossary** (config
 `glossary`) overrides any specialization on the specific terms it defines.
 
+## Context & terminology research
+
+Two features make the translator pick the *right words* for the specific product, not generic
+dictionary ones:
+
+- **Context** (`config.context`) — a short description of what the product is, who it's for, and its
+  register. This is the sense-disambiguator: it's what tells the translator that in a hotel-booking
+  app "Book" means *reserve* (not the object) and "Register" means *sign up* (not a cash register).
+  `/translate-init` asks for it; it's stored in the config and the project's `notes.md`, and passed
+  to every agent on every run.
+- **Terminology research** (`config.research`, the `translate-researcher` agent) — before translating,
+  a research pass reads the context + a content sample, works out the correct term of art per target
+  language (researching *in* the target language), and writes `projects/<slug>/glossary.csv`. The
+  panel treats that glossary as the terminology authority. Default `first-run` researches once per
+  language then reuses the glossary; `--research` forces a refresh; `always` re-researches every run;
+  `off` disables it. You can hand-edit the glossary — research never overwrites human rows.
+
+**Uncertainty is handled asynchronously** (`config.queries`, default `report`): when the translator is
+genuinely unsure about a string, it makes a best guess *and* logs the question — its assumption and
+what it needs to know — to `projects/<slug>/queries-<date>.md`, without interrupting the run. You
+review that file whenever you want; answering (by editing the glossary or notes) settles it for next
+time. `high-stakes` additionally asks interactively for a few legal/medical/financial terms; `off`
+skips the queries file.
+
 ## Supported inputs & formats
 
 Codebase i18n and standalone files alike:
@@ -82,15 +113,19 @@ Codebase i18n and standalone files alike:
 
 ## Where translations are written (output layout)
 
-Set by `--out` / `config.output.mode`:
+Set by `--out` / `config.output.mode` (see the README "Output modes" section for before/after trees):
 
-- **`tree`** *(default; the "point at a path" mode)* — copies each source file to
-  `<projectPath>/translations/<lang>/<original-relative-path>` and translates the **copy**, leaving
-  originals untouched. So `/translate --path C:\Projects\MyApp --to de,fr` produces
-  `C:\Projects\MyApp\translations\de\…` and `…\translations\fr\…`.
-- **`inplace`** — writes a sibling `<name>.<lang>.<ext>` next to each source.
-- **`catalog`** — edits the existing per-language catalog files in place (`messages.<lang>.ts`,
-  `languages/<textdomain>-<locale>.po`, …), for a codebase that already has a language tree.
+- **`inplace`** *(default)* — writes each translation as a sibling next to its source, swapping the
+  language code in the name (`en.json` → `de.json`) or appending one (`guide.md` → `guide.de.md`).
+  Originals untouched.
+- **`tree`** — copies every file into `<projectPath>/translations/<lang>/` (rewriting language codes
+  in the path, so `src/i18n/en.json` → `translations/de/src/i18n/de.json`) and translates the copies;
+  originals untouched. Use when you want the translations isolated from the source.
+- **`catalog`** — edits the existing per-language files in place (`messages.<lang>.ts`, `de.json`,
+  `.po`), for a codebase that already has a language layout.
+
+When `--out` isn't given: `inplace`, unless a per-language catalog/tree already exists → then
+`catalog`.
 
 ## Quick start
 
@@ -135,8 +170,10 @@ omit it and pass values as CLI flags with `--path`. So to translate `C:\Projects
 belongs at `C:\Projects\MyApp\translation.config.json`.
 
 All fields optional. Key fields: `projectPath`, `sourceLang`, `targetLangs`, `specialization`,
-`glossary`, `include`/`exclude`, `output.mode`, `verifyCmd`/`buildCmd`, and a `wordpress` block
-(`textdomain`, `makeMo`, `makeJson`). Command-line flags override the config for a single run.
+`context` (the product's purpose — inline or a `translation-context.md` path), `research`
+(`first-run`|`always`|`off`), `queries` (`report`|`high-stakes`|`off`), `glossary`, `include`/`exclude`,
+`output.mode`, `verifyCmd`/`buildCmd`, and a `wordpress` block (`textdomain`, `makeMo`, `makeJson`).
+Command-line flags override the config for a single run.
 
 ## Guarantees the panel enforces (every run, every language)
 
@@ -166,9 +203,10 @@ Translation Agency/
 ├── translation.config.json      # default settings (source/target langs, specialization, output, formats)
 ├── .claude/
 │   ├── agents/
-│   │   ├── translate-lead.md   # Opus — orchestrator + adversarial QA (C1–C7)
-│   │   ├── translate-senior.md  # Sonnet — domain-prose translator
-│   │   └── translate-junior.md  # Haiku — low-risk chrome translator
+│   │   ├── translate-lead.md       # Opus — orchestrator + adversarial QA (C1–C7)
+│   │   ├── translate-senior.md     # Sonnet — domain-prose translator
+│   │   ├── translate-junior.md     # Haiku — low-risk chrome translator
+│   │   └── translate-researcher.md # Sonnet — terminology research → glossary
 │   └── skills/
 │       ├── translate-init/SKILL.md # generate a project's translation.config.json
 │       ├── translate/SKILL.md    # the main translation pass
@@ -182,7 +220,10 @@ Translation Agency/
 └── projects/
     ├── README.md                 # registry + memory contract
     ├── registry.json             # index of every project translated
-    └── <slug>/notes.md           # per-project memory (created per project)
+    └── <slug>/                   # created per project
+        ├── notes.md              # per-project memory (purpose/context, decisions, run log)
+        ├── glossary.csv          # run glossary (research pass writes; you can edit)
+        └── queries-<date>.md     # async uncertainty log for your review
 ```
 
 ## Notes on portability

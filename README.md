@@ -16,15 +16,19 @@ A single-writer translation flow reliably leaks a known set of errors: source-la
 | **Lead** | `translate-lead` | Opus | Orchestrates each run, dispatches batches, and adversarially reviews every result against a fixed **C1–C7** checklist before signing off. Runs final blind-spot sweeps. Not a translator itself. |
 | **Senior** | `translate-senior` | Sonnet | Translates domain-prose and any substantive surface. Spawned by the Lead. |
 | **Junior** | `translate-junior` | Haiku | Translates only low-risk UI chrome; escalates anything domain-critical. Cheap by design. |
+| **Researcher** | `translate-researcher` | Sonnet | Optional pre-step: works out the correct vocabulary per language from the project's context + content, and writes a reusable glossary the panel translates against. |
 
-The `translate` skill computes scope and per-batch tier, spawns the Lead **once**, and the Lead drives the workers and QA. One final verify/build runs at the end.
+The `translate` skill computes scope and per-batch tier, (optionally) runs the Researcher first, spawns the Lead **once**, and the Lead drives the workers and QA. One final verify/build runs at the end.
 
 ## Features
 
 - **Any project, any files, any language** — codebase i18n *and* standalone documents.
+- **Context-aware** — you describe what the product is; the translator uses it to pick the right *sense* of ambiguous words ("Book" = reserve vs. the object).
+- **Terminology research** — an optional research pass builds a reusable per-language glossary before translating, so terms of art are correct and consistent.
+- **Non-blocking uncertainty** — when unsure, the translator best-guesses and logs the question to an async queries file; it never turns you into an answer machine.
 - **Domain specialization as a per-run setting** — `general` (default), `technical`, `marketing`, `legal`, or your own.
 - **Broad format support** — JS/TS & JSON message catalogs, i18next/`.arb`, YAML, `.resx`, `.strings`; **WordPress / gettext** (`.pot`, `.po`, plurals, `msgctxt`, WP JSON); Markdown/MDX/HTML/XML/XLIFF content trees; `.docx`, `.txt`, subtitles (`.srt`/`.vtt`), CSV.
-- **Flexible output** — copy into a `translations/<lang>/…` tree (originals untouched), write siblings in place, or edit an existing per-language catalog.
+- **Flexible output** — write siblings next to each source (default), copy into an isolated `translations/<lang>/…` tree, or edit an existing per-language catalog in place. See [Output modes](#output-modes--what-each-does).
 - **Quality gates every run** — zero source-language leftovers, identity tokens verbatim, placeholders & markup preserved, correct terminology/framing, and a completeness gate that never lets a full run finish with a silent gap.
 - **Projects registry + memory** — tracks every project it translates (`projects/registry.json`) and keeps per-project notes (terminology decisions, quirks, run log) that each run reads and updates.
 - **Portable** — no hardcoded paths, locales, or domains; everything concrete comes from config + the chosen specialization.
@@ -61,6 +65,9 @@ To use it against another project, copy `.claude/agents/`, `.claude/skills/`, an
 # Everything, from scratch, in a marketing voice
 /translate --full --domain marketing
 
+# Force a fresh terminology-research pass (rebuilds the glossary) before translating
+/translate --to de --research
+
 # Scaffold a brand-new UI language, then fill it
 /translate-add-locale pt-BR
 /translate --full --to pt-BR
@@ -81,13 +88,75 @@ The translator's domain expertise is a **per-run setting**, not baked in. It dec
 
 Add your own by dropping a `specializations/<name>.md` (skeleton in [`specializations/README.md`](specializations/README.md)) and running `/translate --domain <name>` — no code changes. A project glossary (config `glossary`) overrides any specialization on the terms it defines.
 
-## Output layouts
+## Output modes — what each does
 
-Set by `--out` / `config.output.mode`:
+Set the output layout with `--out <mode>` or `config.output.mode`. All examples start from this
+sample project and run `/translate --to de` (source language `en`):
 
-- **`tree`** *(default)* — copies each source file to `<projectPath>/translations/<lang>/<original-relative-path>` and translates the copy, leaving originals untouched.
-- **`inplace`** — writes a sibling `<name>.<lang>.<ext>` next to each source.
-- **`catalog`** — edits the existing per-language catalog files in place (`messages.<lang>.ts`, `languages/<textdomain>-<locale>.po`, …).
+```
+MyApp/
+├── src/i18n/en.json
+├── content/en/home.md
+└── docs/guide.md
+```
+
+### `inplace` — default
+
+Writes each translation as a sibling **right next to its source**, swapping the language code in the
+filename (`en.json` → `de.json`) or appending one when the name has no code (`guide.md` →
+`guide.de.md`). Originals are never overwritten. Best when each language file is meant to live beside
+its source (documents, catalogs).
+
+```
+MyApp/
+├── src/i18n/en.json          ← untouched
+├── src/i18n/de.json          ← NEW · German
+├── content/en/home.md        ← untouched
+├── content/en/home.de.md     ← NEW · German
+├── docs/guide.md             ← untouched
+└── docs/guide.de.md          ← NEW · German
+```
+
+### `tree` — isolated copies per language
+
+Copies everything into a `translations/<lang>/` folder per language and translates the copies;
+originals never change. Language codes in the path are rewritten to the target, so `en.json` lands
+as `de.json` and a `content/en/…` segment becomes `content/de/…`.
+
+```
+MyApp/
+├── src/i18n/en.json          ← untouched
+├── content/en/home.md        ← untouched
+├── docs/guide.md             ← untouched
+└── translations/
+    └── de/
+        ├── src/i18n/de.json       ← en.json renamed → de.json · German
+        ├── content/de/home.md     ← en/ segment → de/ · German
+        └── docs/guide.md          ← no code in name, kept · German
+```
+
+### `catalog` — edit existing language files in place
+
+For a codebase that **already** has a per-language layout. Edits the existing target files directly
+(fills missing keys, fixes leftovers, corrects terminology) — no copies, no new tree. Starting from
+a project that already has `de.json`:
+
+```
+MyApp/
+└── src/i18n/
+    ├── en.json               ← source, untouched
+    └── de.json               ← EDITED in place: missing keys filled, leftovers fixed
+```
+
+When you don't pass `--out`, the default is `inplace` — except if the project already has a
+per-language catalog/tree (a `de.json` next to `en.json`, or `messages.de.ts`), in which case it
+auto-selects `catalog` so it edits the real build files instead of writing `de.de.json` siblings.
+
+> These modes are one of three independent dials. **Output mode** (above) decides *where files go*;
+> **scope** decides *what is translated* (default: only what changed since last run · `--files
+> <glob>`: an explicit set · `--full`: everything); **domain** decides *how* (`--domain
+> general|technical|marketing|legal`). A full command: `/translate --path C:\Projects\MyApp --to
+> de,fr --full --domain technical`.
 
 ## Configuration
 
@@ -95,7 +164,7 @@ Set by `--out` / `config.output.mode`:
 
 For example, to translate an app at `C:\Projects\MyApp`, the file belongs at `C:\Projects\MyApp\translation.config.json`. When you run `/translate --path C:\Projects\MyApp`, the skill reads the config from that path's root and writes copies to `C:\Projects\MyApp\translations\<lang>\…`.
 
-You don't have to write it by hand — run **`/translate-init --path <project>`** and it detects the source language, formats, and existing target languages, asks for the rest, and writes the file to the target project's root for you.
+You don't have to write it by hand — run **`/translate-init --path <project>`**, a guided step-by-step wizard that explains each option, captures the project's purpose/context, and writes the file (and registers the project) for you.
 
 All fields are optional (each falls back to a default); CLI flags override the file for a single run:
 
@@ -105,15 +174,50 @@ All fields are optional (each falls back to a default); CLI flags override the f
   "sourceLang": "en",
   "targetLangs": ["de", "fr", "es"],
   "specialization": "general",
+  "context": "One or two sentences on what the product is and who it's for.",
+  "research": "first-run",
+  "queries": "report",
   "glossary": "",
   "include": ["src/i18n/**", "locales/**", "content/**", "languages/**"],
   "exclude": ["**/node_modules/**", "**/dist/**", "translations/**"],
-  "output": { "mode": "tree", "dir": "translations" },
+  "output": { "mode": "inplace", "dir": "translations" },
   "verifyCmd": "",
   "buildCmd": "",
   "wordpress": { "textdomain": "", "makeJson": false, "makeMo": false }
 }
 ```
+
+`context` is the highest-leverage field — it's what lets the translator pick the right sense of a
+word. `research` controls the terminology-glossary pass (`first-run` builds it once per language then
+reuses it; `always` re-runs it; `off` disables). `queries` controls uncertainty handling (`report`
+logs questions to an async file without interrupting you; `high-stakes` also asks interactively for a
+few legal/medical/financial terms; `off` best-guesses silently). See
+[Context, research & questions](#context-research--questions).
+
+## Context, research & questions
+
+Three features exist so the translator produces the *right words for your product*, not generic
+dictionary output — and so getting there doesn't turn you into an answer machine.
+
+**Context.** You describe, in a sentence or two, what the product is and who it's for. That single
+input is what disambiguates polysemous words: in a hotel-booking app "Book" is *reserve*, "Register"
+is *sign up*, "Order" is a *purchase* — a fact no dictionary can supply. The wizard asks for it; it
+lives in `config.context` (inline or a `translation-context.md` file) and reaches every agent on
+every run.
+
+**Terminology research.** Before translating, the `translate-researcher` agent reads your context and
+a sample of the real content, determines the correct term of art for each target language (researching
+*in* that language, not English), and writes `projects/<slug>/glossary.csv`. The panel then translates
+against that glossary, so terminology is correct and consistent across the whole project. By default
+(`research: first-run`) it runs once per language and the glossary is reused after that; `--research`
+forces a refresh. You can edit the glossary by hand — research never overwrites your rows.
+
+**Questions, handled asynchronously.** When the translator is genuinely unsure about a string, it does
+**not** stop and ask. It makes a best-guess translation *and* appends the question — its assumption and
+what it needs to know — to `projects/<slug>/queries-<date>.md`. You skim that file whenever it suits
+you; answering (by editing the glossary or notes) settles the item so it's never raised again. This is
+the default (`queries: report`). If you'd rather be asked live for the riskiest terms, `high-stakes`
+adds interactive prompts for legal/medical/financial vocabulary only; `off` skips the file entirely.
 
 ## Project layout
 
@@ -126,10 +230,10 @@ translation-agency/
 ├── VERSION                       # 0.1.0
 ├── translation.config.json       # default settings
 ├── .claude/
-│   ├── agents/                   # translate-lead, translate-senior, translate-junior
+│   ├── agents/                   # translate-lead, -senior, -junior, -researcher
 │   └── skills/                   # translate-init/, translate/, translate-add-locale/
 ├── specializations/              # general, technical, marketing, legal (+ README)
-└── projects/                     # registry.json + per-project notes.md memory (+ _template)
+└── projects/                     # registry.json + per-project notes.md / glossary.csv / queries (+ _template)
 ```
 
 ## Versioning
@@ -139,6 +243,25 @@ This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PAT
 ## Contributing
 
 Issues and pull requests welcome. Good first contributions: new `specializations/*.md` modules, additional file-format handling, and glossary tooling. Please add a changelog entry under `[Unreleased]` with your change.
+
+## Disclaimer
+
+**Translations produced by this tool are generated by AI (large language models), not by
+professional human translators.** Although the panel enforces quality checks — leftover detection,
+terminology consistency, placeholder and markup preservation, and adversarial review — AI output can
+still contain errors, mistranslations, omissions, awkward phrasing, or terminology and legal
+inaccuracies, and it may not reflect local conventions, regulations, or cultural nuance.
+
+The output is provided **"as is", without warranty of any kind, and you use it at your own risk.**
+You are responsible for reviewing and validating any translation before you rely on it, publish it,
+or ship it — **especially for legal, medical, financial, safety-critical, or otherwise high-stakes
+content, where review and sign-off by a qualified human translator or subject-matter expert is
+strongly recommended.** Nothing produced by this tool constitutes professional translation, legal,
+medical, or financial advice.
+
+To the maximum extent permitted by law, the authors and contributors accept no liability for any
+loss or damage arising from the use of this software or its output. See the [LICENSE](LICENSE) for
+the full warranty disclaimer and limitation of liability.
 
 ## License
 

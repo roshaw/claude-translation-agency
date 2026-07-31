@@ -3,13 +3,19 @@
 > Per-project memory. Read at the start of every `/translate` run. Keep it to durable **decisions**,
 > not a transcript. Reference the registry entry in `../registry.json`.
 
+## Purpose / context
+<One or two sentences: what this product IS and who it's for. This is what lets the translator pick
+the right SENSE of ambiguous words — e.g. "a hotel-booking app for travelers" → "Book" = reserve,
+"Register" = sign up. Mirrors the config `context` field. The more specific, the better the terms.>
+
 ## Overview
 - **Path:** `<C:\Projects\...>`
 - **Source language:** `<en>`
 - **Target languages:** `<de, fr, ...>` — <why this set, if notable>
 - **Specialization:** `<general | technical | marketing | legal | custom>`
-- **Output mode:** `<tree | inplace | catalog>`
-- **What "done" means here:** <e.g. probe/build green + every target has no leftovers>
+- **Output mode:** `<inplace | tree | catalog>`
+- **Research:** `<first-run | always | off>` · **Queries:** `<report | high-stakes | off>`
+- **What "done" means here:** <e.g. build green + every target has no leftovers>
 
 ## Formats & surfaces
 - <e.g. JS/TS message catalogs under src/i18n; WordPress .po under languages/; MDX under content/>

@@ -33,7 +33,10 @@ source_lang: en
 target_langs: [bg, de, fr, ...]
 specialization: general | technical | marketing | legal | <custom>
 specialization_path: specializations/<name>.md   # read this for the C2 terminology rules
-glossary_path: <optional project glossary>        # honored above the specialization default
+context: <the product's purpose/audience/register — the sense-disambiguator; pass it to workers>
+glossary_path: <the run glossary from the research pass>  # the C2 authority, above the specialization
+queries_mode: report | high-stakes | off          # how workers handle uncertainty (default report)
+queries_path: <projects/<slug>/queries-<date>.md> # the async review lane; consolidate, don't block
 project_conventions: <optional path, e.g. the target project's CLAUDE.md / i18n contract>
 verify_cmd: <optional per-batch gate the workers run, e.g. "npx tsc --noEmit"; empty for plain files>
 batch_list:
@@ -58,9 +61,11 @@ If anything is missing or ambiguous, stop and ask the skill via AskUserQuestion.
 
 Read, in this order:
 
-1. **The specialization module** at `specialization_path` (default `specializations/general.md`). Its "Terminology & non-negotiables" and "Verbatim / do-not-translate" sections are the reference for your C2 (terminology) and C3 (identity) checks. If a project `glossary_path` is supplied, it overrides the module on any term it defines.
-2. **The project conventions** at `project_conventions` if supplied (the target project's i18n contract, brand rules, tone). This tells you the source-of-truth language, placeholder syntax, and any file-format rules.
-3. **The failure-class memory encoded in this prompt** (the C1–C7 checklist + the sweeps). You do not need external memory files.
+1. **The `context`** — what the product is, its audience and register. It is the sense-disambiguator: it decides which meaning of a polysemous word is correct, so your C2 review must judge terminology against the product's actual sense, not a generic dictionary one.
+2. **The `glossary_path`** — the run glossary from the research pass. This is the **authority** for C2: a candidate that contradicts a glossary term of art is a C2 flag; a candidate that matches it is correct even if it's not what you'd have picked. It overrides the specialization on any term it defines.
+3. **The specialization module** at `specialization_path` (default `specializations/general.md`). Its "Terminology & non-negotiables" and "Verbatim / do-not-translate" sections back your C2 (terminology) and C3 (identity) checks where the glossary is silent.
+4. **The project conventions** at `project_conventions` if supplied (the target project's i18n contract, brand rules, tone) — source-of-truth language, placeholder syntax, file-format rules.
+5. **The failure-class memory encoded in this prompt** (the C1–C7 checklist + the sweeps). You do not need external memory files.
 
 Do NOT read every translation file up front — that is the cost trap. You read the source + candidate per batch, as you review.
 
@@ -80,10 +85,15 @@ For each batch the skill suggests `Junior` or `Senior`. Sanity-check before spaw
 ```
 Agent({
   subagent_type: "translate-junior" | "translate-senior",
-  prompt: <the batch brief — file list, source & target lang, specialization_path,
-           glossary_path, verify_cmd, and for code the exact keys to translate>
+  prompt: <the batch brief — file list, source & target lang, specialization_path, context,
+           glossary_path, queries_mode, queries_path, verify_cmd, and for code the exact keys>
 })
 ```
+
+Always pass `context`, `glossary_path`, `queries_mode`, and `queries_path` through to the Senior — the
+glossary and context are what keep terminology consistent across batches, and the queries path is
+where the Senior logs uncertainty asynchronously (it must not block). Junior batches don't need the
+glossary (chrome only) but still get `context`.
 
 The worker returns the diff it applied plus a one-line summary per file. If a `verify_cmd` was supplied, the worker ran it inside its spawn; if it failed the worker reports that and you skip review (the file isn't valid yet — surface to the skill).
 

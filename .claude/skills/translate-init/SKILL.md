@@ -1,18 +1,17 @@
 ---
 name: translate-init
-description: Create a translation.config.json for a project — the setup step before /translate. Point it at a target project (a path or the current folder), and it detects the source language, the file formats present, and any existing target languages, asks for the target languages / domain specialization / output layout (pre-filling detected defaults), then writes a ready-to-use translation.config.json at that project's root. Use when the user says "set up translation for this project", "create the translation config", "initialize translation", "configure translations", or before a first /translate run on a project that has no config yet.
+description: Guided, step-by-step builder for a project's translation.config.json — the setup step before /translate. Walks the operator through every option ONE AT A TIME with a plain-language explanation of what it does and what to fill, pre-filling smart defaults it detects from the project (source language, formats, existing target languages). Captures the project's PURPOSE/CONTEXT (what the product is, so the translator picks the right sense of each word), the target languages, domain specialization, output layout, and the research/uncertainty preferences. Writes the config at the project's root and registers the folder as a tracked project. Use when the user says "set up translation for this project", "create the translation config", "configure translations", "initialize translation", "build the config step by step", or before a first /translate run on a project with no config.
 ---
 
 # translate-init
 
-Scaffolds a `translation.config.json` at the **root of the project being translated** (the target
-project — the folder holding the source files, where the `translations/` output lands), so the user
-doesn't have to hand-write it. This is the setup counterpart to `/translate`: run it once per
-project, then run `/translate`.
+A **guided wizard** that builds `translation.config.json` at the **root of the project being
+translated** (the target project — the folder with the source files) and registers that folder as a
+tracked project. It asks about each option one step at a time, explaining what the option does and
+what to put, and pre-fills what it can detect. Run it once per project, then run `/translate`.
 
 > **Placement is the whole point.** The file goes in the **target project**, not in the Translation
-> Agency toolkit folder. If the user is pointing at `C:\Projects\MyApp`, the file is written to
-> `C:\Projects\MyApp\translation.config.json`.
+> Agency toolkit folder. Pointing at `C:\Projects\MyApp` writes `C:\Projects\MyApp\translation.config.json`.
 
 ## Invocation
 
@@ -24,96 +23,108 @@ project, then run `/translate`.
 
 ## Step 0 — Resolve the target project root
 
-`--path` / bare `<path>` → that folder. Else the current directory. Accept an absolute computer
-path as given. This root is where the config will be written. If a `translation.config.json`
-**already exists** there, read it, tell the user, and offer to update it (merge new answers) rather
-than overwrite — never silently clobber an existing config.
+`--path` / bare `<path>` → that folder; else the current directory (accept an absolute computer path
+as given). This root is where the config is written. If a `translation.config.json` **already
+exists**, read it and offer to update it (its current values become the defaults) — never silently
+clobber.
 
-## Step 1 — Detect (don't ask what you can infer)
+## Step 1 — Detect, so defaults are pre-filled (don't ask what you can infer)
 
-Using `Glob`/`Grep`/`Read` (never shell loops), inspect the project and infer defaults:
+Using `Glob`/`Grep`/`Read` (never shell loops), infer: **source language** (`messages.en.ts`, `en/`,
+`.en.md`, `-en.po`, or a content sample; default `en`); **existing target languages** already present;
+**formats** present (JS/TS or JSON catalogs, WordPress `.pot`/`.po`, i18next/`.arb`, MD/MDX/HTML
+trees, subtitles, CSV); a likely **`include`** set (where translatable files actually live); a
+**verify command** (`npx tsc --noEmit` if there's a `tsconfig`); and any **WordPress text domain**.
+Print a short "here's what I found" summary before asking anything.
 
-- **Source language** — from the layout (`messages.en.ts`, `en/`, `-en.po`, `.en.md`) or a content
-  sample. Default `en` if unclear.
-- **Existing target languages** — every non-source language already present in an i18n tree / `.po`
-  set / content tree. These become the default `targetLangs` (the user can add more).
-- **Formats present** — JS/TS or JSON catalogs, WordPress gettext (`.pot`/`.po`), i18next/`.arb`,
-  Markdown/MDX/HTML trees, subtitles, CSV, docs (see the format table in `/translate`). This informs
-  `include` globs and whether to show the `wordpress` block.
-- **A likely `include` set** — the directories where translatable files actually live (e.g.
-  `src/i18n/**`, `content/**`, `languages/**`), rather than the whole repo.
-- **A verify command** — if it's a JS/TS project with a `tsconfig`, suggest `npx tsc --noEmit`;
-  otherwise leave empty.
-- **WordPress text domain** — if `.pot`/`.po` are found, read the text domain from the filenames /
-  headers.
+## Step 2 — Walk the operator through each option (the guided part)
 
-Summarize what you detected in one short block before asking anything.
+Ask about the settings **one at a time**, each with a one-line explanation of what it controls and
+what to enter, and the detected value pre-filled as the default. Use AskUserQuestion (batching a few
+related ones per screen is fine), but always include the explanation so the operator understands the
+choice. If the session is unattended, skip the prompts, use detected defaults + `general` +
+`inplace` + `first-run` research + `report` queries, and state the assumptions.
 
-## Step 2 — Ask only what you can't infer (one AskUserQuestion round)
+Cover, in order:
 
-Pre-fill detected values as the default option. Ask for:
-
-1. **Target languages** — confirm the detected set and/or add more (free-text codes accepted, e.g.
-   `de, fr, pt-BR`, or WP form `de_DE`).
-2. **Specialization** — `general` (default), `technical`, `marketing`, `legal`, or a custom module
-   name. List the modules found in the toolkit's `specializations/` folder as the options.
-3. **Output layout** — `tree` (default; copies to `translations/<lang>/…`, originals untouched),
-   `inplace` (siblings `<name>.<lang>.<ext>`), or `catalog` (edit existing per-language files in
-   place). Recommend `catalog` when an existing per-language i18n tree was detected, else `tree`.
-
-If the session is unattended, skip the questions and use the detected defaults + `general` +
-`tree`, and state the assumptions in the summary.
+1. **Project purpose / context** — *"In one or two sentences, what is this product and who is it
+   for? This is the single most useful thing you can give the translator: it decides the right sense
+   of ambiguous words. e.g. 'A hotel-booking web app for travelers' tells the translator that 'Book'
+   means reserve, not a physical book; 'Register' means sign up, not a cash register."* Free text.
+   If they give a lot, offer to save it as a `translation-context.md` in the project and point the
+   config `context` at that file; otherwise store the sentence inline in `context`.
+2. **Target languages** — *"Which languages should we translate INTO? Use language codes like `de`,
+   `fr`, `pt-BR`, or WordPress form `de_DE`."* Default = detected set; free-text to add.
+3. **Source language** — *"What language is the original content in?"* Default = detected; only ask
+   if detection was unsure.
+4. **Domain specialization** — *"Which domain profile should the translator use? It sets the
+   terminology, what stays verbatim, and the tone."* Options = the modules in the toolkit's
+   `specializations/` folder (`general` default, `technical`, `marketing`, `legal`, + any custom),
+   each with its one-line purpose.
+5. **Output layout** — *"Where should translated files go?"* Options with plain explanations:
+   `inplace` (default — *"a sibling next to each source, e.g. `en.json` → `de.json`; originals
+   untouched"*), `tree` (*"copies into a `translations/<lang>/` folder per language; originals
+   untouched"*), `catalog` (*"edit the existing per-language files in place — pick this if the
+   project already has `de.json`/`messages.de.ts`"*). Recommend `catalog` if an existing per-language
+   layout was detected, else `inplace`.
+6. **Terminology research** — *"Before translating, should a research pass work out the correct
+   vocabulary for your material (per language) and save a reusable glossary?"* Options: `first-run`
+   (default — *"research once per language, then reuse the glossary; refresh anytime with
+   `--research`"*), `always` (*"re-research every run — highest quality, higher cost"*), `off`.
+7. **Uncertainty handling** — *"When the translator is genuinely unsure about a string, what should
+   it do?"* Options: `report` (default — *"never interrupts you: it makes a best guess and logs the
+   uncertainty to a queries file you review whenever you want"*), `high-stakes` (*"also ask you
+   directly for a few legal/medical/financial terms"*), `off` (*"best guess, no queries file"*).
+8. **Verify / build commands** — *"Any command to check the translated files compile (run per batch),
+   or to build once at the end?"* Default = detected verify, empty build. Optional.
 
 ## Step 3 — Write the config
 
-Write `translation.config.json` at the target project root. Include the resolved values and keep the
-explanatory `$comment_*` keys (they're valid JSON and help the next human). Use the repo template as
-the shape — set `projectPath` to `""` when the config lives inside the project it configures (it's
-implied), or to the absolute path if the user prefers to keep the config elsewhere. Only enable the
-`wordpress` block if gettext files were detected.
-
-Set `include`/`exclude` to the detected surfaces (always add the output dir — `translations/**` — to
-`exclude` so a re-run doesn't translate its own output).
+Write `translation.config.json` at the project root, using the repo template's shape and keeping the
+explanatory `$comment_*` keys. Fill: `sourceLang`, `targetLangs`, `specialization`, `context` (inline
+or the `translation-context.md` path), `research`, `queries`, `output.mode`, `include`/`exclude`
+(always add the output dir + `translations/**` to `exclude`), `verifyCmd`/`buildCmd`, and the
+`wordpress` block only if gettext files were detected. Leave `projectPath` `""` (the config lives in
+the project it configures). Point `glossary` at `projects/<slug>/glossary.csv` (the research pass
+fills it).
 
 ## Step 3.5 — Register the project in the Translation Agency
 
-Record the project in the toolkit's registry so future runs know it exists and carry memory about it:
+So `/translate` can list and remember it:
 
-1. Read `projects/registry.json`. If an entry with the same `path` exists, update it (don't
-   duplicate); otherwise append a new entry with a kebab-case `slug` of the project name:
+1. In the toolkit's `projects/registry.json`, add (or update, matching by `path`) an entry:
    ```json
    { "slug": "myapp", "name": "MyApp", "path": "<abs path>", "sourceLang": "<...>",
      "targetLangs": ["<...>"], "specialization": "<...>", "outputMode": "<...>",
      "status": "active", "addedAt": "<YYYY-MM-DD>", "lastRunAt": "", "notes": "projects/myapp/notes.md" }
    ```
-   Get today's date from one `date` Bash call (don't invent it).
-2. Create `projects/<slug>/notes.md` from `projects/_template/notes.md`, filling the Overview block
-   with the resolved settings. If it already exists, leave it (don't overwrite accumulated memory).
-3. Optionally create an empty `projects/<slug>/glossary.csv` if the user wants a project glossary,
-   and point the config's `glossary` field at it.
+   Get the date from one `date` Bash call (don't invent it).
+2. Create `projects/<slug>/notes.md` from `projects/_template/notes.md`, filling the Overview +
+   **Purpose / context** with what the operator gave. If it already exists, leave it.
+3. Create an empty `projects/<slug>/glossary.csv` with the header
+   `source,lang,term,context,confidence,source,notes` so the first research pass has somewhere to write.
 
 See `projects/README.md` for the registry + memory contract.
 
 ## Step 4 — Offer the git-ignore additions
 
-If the target is a git repo, offer to append the run markers to its `.gitignore`
-(`.translate-last-review`, `.translate-report-*.json`, and — if the user doesn't want to commit
-outputs — `translations/`). Don't edit `.gitignore` without confirming.
+If the target is a git repo, offer to append `.translate-last-review`, `.translate-report-*.json`
+(and, if they don't want to commit outputs, `translations/`) to its `.gitignore`. Confirm first.
 
 ## Step 5 — Report + next step
 
-Show the written config path, the registry entry added, and the `projects/<slug>/notes.md` created.
-Give a compact summary of the settings, then the next step:
+Show the config path, the context captured, the registry entry, and `projects/<slug>/notes.md`. Give
+a compact settings summary, then:
 ```
 /translate --path <project root>
 ```
-(or just `/translate` if they'll run it from inside the project). Mention that any setting can be
-overridden per run with a flag without editing the file.
+(or just `/translate` from inside the project). Note that any setting is overridable per run with a
+flag, and that the first run will auto-research terminology (if `research: first-run`) and write the
+glossary.
 
 ## Reference
 
-- The config schema + placement rules: the repo's `translation.config.json` template and `CLAUDE.md`
-  → Configuration.
-- Specialization modules: `specializations/` (default `general`); how they work:
-  `specializations/README.md`.
-- The pass this sets up: `/translate` skill.
+- Config schema + placement: `translation.config.json` template and `CLAUDE.md` → Configuration.
+- Specializations: `specializations/` (default `general`); `specializations/README.md`.
+- Research agent: `.claude/agents/translate-researcher.md`. Registry/memory: `projects/README.md`.
+- The pass this sets up: `/translate`.

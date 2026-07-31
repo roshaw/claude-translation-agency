@@ -14,9 +14,25 @@ projects/
 ├── _template/
 │   └── notes.md          # copied to projects/<slug>/notes.md for a new project
 └── <slug>/               # one folder per project (slug = kebab-case of the project name)
-    ├── notes.md          # per-project memory (decisions, terminology, quirks, run log)
-    └── glossary.csv      # optional project glossary (source,lang,term) — overrides the specialization
+    ├── notes.md          # per-project memory (purpose/context, decisions, quirks, run log)
+    ├── glossary.csv      # the run glossary — written by the research pass, editable by you
+    └── queries-<date>.md # async uncertainty log — the translator's questions for you to review
 ```
+
+### `glossary.csv`
+
+Columns: `source,lang,term,context,confidence,source,notes`. Written and updated by the
+`translate-researcher` agent (the research pass) and consumed by the translator panel as the
+authority on terminology. **You can edit it** — human rows are never overwritten by research. A row
+with `lang=*` marks a do-not-translate term. It overrides the domain specialization on any term it
+defines.
+
+### `queries-<date>.md`
+
+Where the translator logs strings it was genuinely unsure about — its best-guess rendering plus the
+question it would ask — **without interrupting the run**. Review it whenever you want; answer by
+editing `glossary.csv` or `notes.md`, and the next run treats it as settled. This is the async
+alternative to being asked questions mid-translation.
 
 ## `registry.json`
 

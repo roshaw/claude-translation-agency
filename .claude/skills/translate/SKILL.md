@@ -33,7 +33,7 @@ Lead handles all worker spawns and reviews. The single final build/verify runs h
 /translate --from <lang>           # override the detected/configured source language
 /translate --domain <name>         # specialization: general | technical | marketing | legal | <custom> (default from config, else general)
 /translate --files <glob|paths>    # translate an explicit set (a folder, a glob, named files)
-/translate --out <mode>            # output layout: tree (default) | inplace | catalog  (see Step 0.5)
+/translate --out <mode>            # output layout: inplace (default) | tree | catalog  (see Step 0.5)
 /translate --full                  # translate the ENTIRE translatable surface, not just the diff
 ```
 
@@ -99,11 +99,18 @@ single command with quoted content, not a chain.
 
 ## Step 0 — Preflight
 
-1. **Locate the project root.** Resolve in this order: `--path <dir>` / a bare `<path>` argument,
-   else `translation.config.json → projectPath`, else the current directory. The path may be an
-   **absolute computer path** (e.g. `C:\Projects\MyApp`); accept it as given. All scope globs
-   (`include`/`exclude`, `--files`) are relative to this root. Read `translation.config.json` from
-   the root if present; if none exists, detect below and offer to write a starter config at the end.
+1. **Locate the project root.** Resolve in this order:
+   a. `--path <dir>` / a bare `<path>` argument (an absolute computer path like `C:\Projects\MyApp`
+      is fine — accept it as given).
+   b. Else, if the current folder has a `translation.config.json`, use the current folder.
+   c. Else **offer a project picker** from the registry: read the toolkit's `projects/registry.json`.
+      If it lists projects, AskUserQuestion "Which project should I translate?" with each registered
+      project as an option (label = name, description = path + langs + last run), plus an "Other
+      (enter a path)" path. If exactly one project is registered, offer it as the default. If the
+      registry is empty, ask for a path, or suggest running `/translate-init` first to set one up.
+   All scope globs (`include`/`exclude`, `--files`) are relative to the chosen root. Read that root's
+   `translation.config.json`; if none exists, detect below and offer to write a starter config (or to
+   run `/translate-init`) at the end.
 1b. **Load project memory.** Read the toolkit's `projects/registry.json` and find the entry whose
    `path` matches this project root. If found, read its `projects/<slug>/notes.md` — the terminology
    decisions, do-not-translate list, format quirks, and "what done means here" are run context; pass
@@ -111,33 +118,51 @@ single command with quoted content, not a chain.
    contract). If there's **no** registry entry, note it — you'll offer to register the project at the
    end (Step 9), and continue this run using config + flags. (Setup via `/translate-init` is the
    normal way to register, but a `/translate` run on an unregistered project still works.)
-2. **If the root is a git repo AND output mode is `catalog`/`inplace`:** note the branch and any
-   uncommitted changes (`git -C <root> status --porcelain`, one call). If dirty, list the files and
-   ask whether to proceed, stash, or abort — so staging by name at Step 7 doesn't entangle unrelated
-   WIP. A clean tree needs no prompt.
-3. **Output mode `tree`** (the default — see Step 0.5) writes into a fresh `translations/<lang>/`
-   subtree and never edits originals, so it needs no dirty-tree prompt even in a git repo. Plain
-   non-git folders skip git entirely.
+2. **If the root is a git repo AND output mode is `inplace` (the default) or `catalog`:** these
+   write into the working tree, so note the branch and any uncommitted changes (`git -C <root> status
+   --porcelain`, one call). If dirty, list the files and ask whether to proceed, stash, or abort — so
+   staging by name at Step 7 doesn't entangle unrelated WIP. A clean tree needs no prompt.
+3. **Output mode `tree`** writes into a fresh `translations/<lang>/` subtree and never edits
+   originals, so it needs no dirty-tree prompt even in a git repo. Plain non-git folders skip git
+   entirely.
 
 ## Step 0.5 — Resolve the output layout
 
-Resolve `--out`, else `config.output.mode`, else default **`tree`**:
+Resolve `--out`, else `config.output.mode`, else default **`inplace`**:
 
-- **`tree`** (default, and the right choice when the user just points at a folder/path): for each
+- **`inplace`** (default): write each translation as a sibling next to its source. If the source
+  filename encodes the source language, **swap that code** for the target (`en.json` → `de.json`,
+  `messages.en.ts` → `messages.de.ts`, in the same folder); otherwise append the code before the
+  extension (`guide.md` → `guide.de.md`). Originals are never overwritten (the target is a different
+  filename). Good for document and catalog sets where each language file lives beside its source.
+- **`tree`** (the right choice when you want translated copies isolated from the originals): for each
   target language, **copy** every in-scope source file to
-  `<root>/<config.output.dir>/<lang>/<original-relative-path>` (default dir `translations`, so
-  `<root>/translations/de/src/app.json`), then translate the **copy in place**. Originals are never
-  touched. Always add `<dir>/**` to `exclude` so a re-run doesn't translate its own output. Do the
-  copy with `Read`+`Write` (or a single `cp` Bash call per file — no chaining); create parent dirs
-  as needed. The Lead/Senior then edit the copied files.
-- **`inplace`**: write a sibling next to each source named `<name>.<lang>.<ext>` (e.g.
-  `guide.de.md`). Good for document sets that live alongside their source.
+  `<root>/<config.output.dir>/<lang>/<relative-path>` (default dir `translations`, so
+  `<root>/translations/de/…`), then translate the **copy in place**. Originals are never touched.
+  Always add `<dir>/**` to `exclude` so a re-run doesn't translate its own output. Do the copy with
+  `Read`+`Write` (or a single `cp` Bash call per file — no chaining); create parent dirs as needed.
+  The Lead/Senior then edit the copied files.
+  - **Rewrite the source-language code in the path to the target language** as you copy — otherwise
+    you'd leave `en.json` sitting inside a `de/` folder. Rewrite an exact language-code **filename
+    stem/suffix** and an exact **path segment**, only where it stands alone as the language code
+    (never inside another word like `content` or `engine`):
+    - `en.json` → `de.json`; `messages.en.ts` → `messages.de.ts`; `guide.en.md` → `guide.de.md`
+    - a `…/en/…` path segment → `…/de/…` (e.g. `content/en/home.md` → `content/de/home.md`)
+    - `strings-en.xml` / `app-en.strings` → `strings-de.xml` / `app-de.strings`
+    - WordPress: `<textdomain>-en_US.po` → `<textdomain>-de_DE.po` (use the target's WP locale form)
+    A file whose name carries **no** language code (e.g. `guide.md`, `README.md`) keeps its name —
+    the parent `<lang>/` folder already marks the language. Record, per copied file, both the target
+    path (renamed) and the source path it came from, so the workers read the source and write the
+    renamed copy.
 - **`catalog`**: for an existing i18n message-catalog project, edit the per-language files that
-  already exist (`messages.<lang>.ts`, `locales/<lang>.json`, `languages/<textdomain>-<locale>.po`).
-  This is the in-place mode for a codebase that already has a language tree.
+  already exist (`messages.<lang>.ts`, `locales/<lang>.json`, `languages/<textdomain>-<locale>.po`)
+  in place — fill missing keys, fix leftovers, correct terminology; don't create copies. This is the
+  mode for a codebase whose language files are already wired into the build.
 
-Auto-pick when the user didn't specify: an existing per-language catalog/tree → `catalog`; a bare
-folder or a set of standalone documents → `tree`. State which mode you chose in Step 9.
+When `--out` isn't given, use `config.output.mode`, else the default **`inplace`** — with one
+smart exception: if the project **already has a per-language catalog/tree** (e.g. `de.json` already
+sits next to `en.json`, or `messages.de.ts` exists), prefer **`catalog`** so you edit the real files
+the build uses instead of writing `de.de.json` siblings. State which mode you chose in Step 9.
 
 ## Step 1 — Detect source language, formats, and the translatable surface
 
@@ -191,10 +216,11 @@ Use `Glob`/`Grep`/`Read` (never shell loops). Determine:
 ## Step 2 — Order into batches and classify each tier
 
 Split the translatable set into ordered batches of **at most 3 files each**, one target language
-per batch. **In `tree` mode the batch's files are the copied target paths** (under
-`<root>/translations/<lang>/…`), with the matching source path recorded so the worker reads the
-source and overwrites the copy. Order deterministically (by format, then path) so a restart is
-reproducible. A
+per batch. **In `tree` and `inplace` modes the batch's files are the renamed target paths the skill pre-created**
+(the copy under `translations/<lang>/…` for `tree`, or the sibling next to the source for `inplace`),
+with the matching source path recorded so the worker reads the source and overwrites the copy. In
+`catalog` mode the files are the existing per-language files. Order deterministically (by format,
+then path) so a restart is reproducible. A
 fan-out source (an MDX/HTML/`.po` template that produces one output per language) counts as **one
 batch item per (source, language)** — never split one source's languages across batches
 arbitrarily; keep a source's set together where practical.
@@ -206,6 +232,26 @@ Classify each batch's `suggested_tier`:
   footer, buttons, generic errors, format fields) with no domain term / citation / identity token →
   **Junior**. Otherwise → **Senior**. A brand-new/entirely-untranslated file → **Senior** regardless.
 - Fail-safe: anything ambiguous → **Senior**.
+
+## Step 2.5 — Terminology research (conditional)
+
+Decide whether to run the `translate-researcher` before translating. Run it when **any** holds:
+- `--research` was passed (force a refresh), OR
+- `config.research` is `always`, OR
+- `config.research` is `first-run` (default) AND this project/target-language pair has **no glossary
+  yet** (no `projects/<slug>/glossary.csv`, or it lacks rows for a target language in scope).
+
+Skip it when `config.research` is `off`, or when `first-run` and a glossary already covers every
+target language (reuse the saved glossary — research is a once-per-language cost, not per-run).
+
+When running it, spawn ONE `translate-researcher` (Agent tool) with a brief: `project_root`, `slug`,
+the `context` (from `config.context` — inline text or the contents of the file it points to),
+`source_lang`, `target_langs`, `specialization_path`, `glossary_path` (`projects/<slug>/glossary.csv`),
+`queries_path` (`projects/<slug>/queries-<date>.md`), a **content_sample** (you pick the high-signal
+files — headings, catalogs, nav/labels — not the whole surface), and `formats`. It writes/merges the
+glossary and logs low-confidence terms to the queries file, then returns a summary. Pass the resulting
+`glossary_path` to the Lead in Step 3. If the researcher can't resolve a language at all, note it and
+continue — the panel still runs against the specialization.
 
 ## Step 3 — Spawn the Lead once
 
@@ -224,7 +270,11 @@ source_lang: <lang>
 target_langs: [<...>]
 specialization: <name>
 specialization_path: specializations/<name>.md
-glossary_path: <config.glossary or "">
+context: <config.context — inline text or the contents of translation-context.md; the product's
+          purpose/audience/register, so the panel picks the right sense of each word>
+glossary_path: projects/<slug>/glossary.csv    # the research pass's output (or config.glossary)
+queries_mode: report | high-stakes | off       # from config.queries (default report)
+queries_path: projects/<slug>/queries-<date>.md
 project_conventions: <target project's CLAUDE.md / i18n contract path, or "">
 verify_cmd: <config.verifyCmd or "">
 batch_list:
@@ -238,9 +288,10 @@ batch_list:
 report_path: .translate-report-<run_id>.json
 ```
 
-(In `tree` mode you copy the source files into `translations/<lang>/…` **before** spawning the Lead,
-so `files` already exist as source-language copies for the workers to overwrite. In `catalog` mode
-`files` and `source_files` are the existing per-language and source-language catalog files.)
+(In `tree`/`inplace` mode you copy each source file to its **renamed** target path **before** spawning
+the Lead, so `files` already exist as source-language copies for the workers to overwrite. In
+`catalog` mode `files` and `source_files` are the existing per-language and source-language catalog
+files.)
 
 The Lead confirms/overrides each tier, spawns the workers, reviews against C1–C7, inline-fixes
 small correction sets (returns large ones to Senior, cycle-cap 2), runs the final sweeps, writes
@@ -339,17 +390,25 @@ Print a tight summary from the Lead's report + gates + commit:
 - **Flags by category** C1–C7 + S1–S3.
 - **Completeness gate** (MANDATORY line, even on a clean run — state "all target languages complete"
   positively, or `⚠ Still partial: <lang> — <what's missing>`).
+- **Terminology research**: ran (N terms — X high / Y medium / Z low confidence) / reused saved
+  glossary / skipped (state which). Glossary: `projects/<slug>/glossary.csv`.
+- **Queries (async, non-blocking)**: N items logged to `projects/<slug>/queries-<date>.md` for your
+  review whenever you want — or "none". Never block the run on these.
 - **Open questions** to the user (cycle-capped residuals, broken source, suspicious data).
 - **Gates**: verify / build result.
 - **Commit** `<hash> <subject>` (not pushed) or "delivered N files" / "no changes".
 - **Marker** advanced/left.
 
----
+End the report with this one-line disclaimer footer, verbatim (it is a point-of-use reminder, not
+optional): `⚠ AI-generated translation — review before publishing; human sign-off recommended for
+legal/medical/financial/safety-critical content.` If the run's specialization is `legal`, `medical`,
+or `financial`, make it a full sentence and bold it, since the stakes are higher.
 
 ## Reference
 
 - Panel: `.claude/agents/translate-lead.md` (Lead), `translate-senior.md` (Senior),
-  `translate-junior.md` (Junior).
+  `translate-junior.md` (Junior). Terminology research: `translate-researcher.md`.
+- Per-project glossary + queries: `projects/<slug>/glossary.csv`, `projects/<slug>/queries-<date>.md`.
 - Specializations: `specializations/<name>.md` (default `general.md`); how they work:
   `specializations/README.md`.
 - Config: `translation.config.json` (source/target langs, specialization, formats, verify/build).

@@ -7,8 +7,17 @@
   "$comment_specialization": "The domain profile the translator panel loads. One of: general | technical | marketing | legal | <your own specializations/<name>.md>. Default is 'general'. Override per run with /translate --domain <name>.",
   "specialization": "general",
 
-  "$comment_glossary": "Optional path to a project glossary (CSV/TSV: source,lang,term). Overrides the specialization on any term it defines.",
+  "$comment_glossary": "Optional path to a project glossary (CSV: source,lang,term,context,confidence,source,notes). Overrides the specialization on any term it defines. The research pass writes/updates this file.",
   "glossary": "",
+
+  "$comment_context": "What this project IS — its purpose, audience, register/brand voice, and any domain notes. This is what lets the translator pick the right sense of a word (e.g. 'Book' = reserve vs. the object). Put a short description inline here, OR a path to a translation-context.md file. The more specific, the better the terminology.",
+  "context": "",
+
+  "$comment_research": "Terminology-research pass (the translate-researcher agent) that builds a per-language glossary before translating. 'first-run' (default) researches the first time a project/language is translated, then reuses the saved glossary; 'always' re-researches every run; 'off' never runs it. Force a refresh any run with the --research flag.",
+  "research": "first-run",
+
+  "$comment_queries": "How uncertain strings are handled. 'report' (default) never interrupts you: the translator makes a best guess and logs each uncertainty to projects/<slug>/queries-<date>.md for you to review whenever you want. 'high-stakes' also asks interactively for a few legal/medical/financial terms. 'off' makes a best guess and writes no queries file.",
+  "queries": "report",
 
   "$comment_projectPath": "Absolute path to the project/files to translate (e.g. C:/Users/you/Projects/MyApp). Empty = the current directory. Override per run with /translate --path <path> or /translate <path>.",
   "projectPath": "",
@@ -17,9 +26,9 @@
   "include": ["src/i18n/**", "locales/**", "content/**", "languages/**"],
   "exclude": ["**/node_modules/**", "**/dist/**", "**/*.min.*", "translations/**"],
 
-  "$comment_output": "Where translated files are written. mode 'tree' (default) copies each source file to <projectPath>/<dir>/<lang>/<original-relative-path> and translates the COPY, leaving originals untouched. mode 'inplace' writes siblings named <name>.<lang>.<ext> next to the source. mode 'catalog' edits existing per-language message-catalog files in place (messages.<lang>.ts etc.).",
+  "$comment_output": "Where translated files are written. mode 'inplace' (default) writes each translation as a sibling next to its source, swapping the language code in the name (en.json -> de.json) or appending one (guide.md -> guide.de.md); originals untouched. mode 'tree' copies every file into <projectPath>/<dir>/<lang>/ (rewriting language codes in the path) and translates the copies, leaving originals untouched. mode 'catalog' edits existing per-language files in place (messages.<lang>.ts, de.json, .po). 'dir' is only used by tree mode.",
   "output": {
-    "mode": "tree",
+    "mode": "inplace",
     "dir": "translations"
   },
 

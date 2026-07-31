@@ -1,0 +1,57 @@
+# Projects registry & memory
+
+This folder is the Translation Agency's record of **every project it translates** — a machine-
+readable index plus a human-readable memory file per project. It lets any future run answer "what
+projects am I working with, and what do I already know about this one?" without re-deriving it.
+
+Because it lives in the toolkit repo, it's versioned in git and travels with the project.
+
+## Layout
+
+```
+projects/
+├── registry.json         # index of all projects (paths, langs, specialization, status, last run)
+├── _template/
+│   └── notes.md          # copied to projects/<slug>/notes.md for a new project
+└── <slug>/               # one folder per project (slug = kebab-case of the project name)
+    ├── notes.md          # per-project memory (decisions, terminology, quirks, run log)
+    └── glossary.csv      # optional project glossary (source,lang,term) — overrides the specialization
+```
+
+## `registry.json`
+
+An index array; each entry:
+
+```json
+{
+  "slug": "myapp",
+  "name": "MyApp",
+  "path": "C:\\Projects\\MyApp",
+  "sourceLang": "en",
+  "targetLangs": ["de", "fr"],
+  "specialization": "technical",
+  "outputMode": "tree",
+  "status": "active",
+  "addedAt": "2026-07-31",
+  "lastRunAt": "",
+  "notes": "projects/myapp/notes.md"
+}
+```
+
+`status`: `active` | `paused` | `done`. `lastRunAt` is stamped by `/translate` after each pass.
+
+## Who maintains it
+
+- **`/translate-init`** — when it sets up a project, it adds a registry entry and creates
+  `projects/<slug>/notes.md` from the template (unless one already exists).
+- **`/translate`** — at the **start** of a run it looks the project up by path, and if found reads
+  `notes.md` for context (terminology decisions, quirks, what "done" means here). At the **end** it
+  updates `lastRunAt` / `status` in the registry and appends a run-log line to `notes.md`.
+- **You** — hand-edit either file anytime; both are plain text/JSON.
+
+## Per-project memory (`notes.md`)
+
+The durable knowledge about a project that isn't obvious from its files: which languages and why,
+the chosen specialization and any glossary decisions, terminology calls made during review, format
+quirks, what to leave verbatim, known issues, and a dated run log. Keep it tight — it's read at the
+start of every run, so it should be the *decisions*, not a transcript.

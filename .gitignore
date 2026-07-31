@@ -1,0 +1,25 @@
+# Translation Agency — ignore rules
+
+# Staging/cleanup folders left by the setup process (safe to delete)
+_to_delete/
+_claude/
+_stage/
+
+# Per-run translation markers and reports (untracked, per-machine)
+.translate-last-review
+.translate-report-*.json
+
+# Generated translation output trees (uncomment if you don't want to commit outputs)
+# translations/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# Node (only if a target project's tooling leaks in)
+node_modules/
+dist/

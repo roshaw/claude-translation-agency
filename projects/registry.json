@@ -1,0 +1,5 @@
+{
+  "$comment": "Registry of every project the Translation Agency works with. Maintained by /translate-init (adds a project) and /translate (updates lastRunAt + status after a run). Each entry points to a per-project memory file under projects/<slug>/notes.md. Hand-editing is fine.",
+  "version": 1,
+  "projects": []
+}

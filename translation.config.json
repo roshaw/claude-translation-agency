@@ -1,0 +1,36 @@
+{
+  "$comment": "PLACEMENT: put this file at the ROOT of the project you are translating (the folder holding the source files, where the translations/ output is written) — NOT in the Translation Agency toolkit folder. This copy is a template; copy it into your target project and edit it there. All fields optional; command-line flags override these. See CLAUDE.md and specializations/README.md.",
+
+  "sourceLang": "en",
+  "targetLangs": ["de", "fr", "es"],
+
+  "$comment_specialization": "The domain profile the translator panel loads. One of: general | technical | marketing | legal | <your own specializations/<name>.md>. Default is 'general'. Override per run with /translate --domain <name>.",
+  "specialization": "general",
+
+  "$comment_glossary": "Optional path to a project glossary (CSV/TSV: source,lang,term). Overrides the specialization on any term it defines.",
+  "glossary": "",
+
+  "$comment_projectPath": "Absolute path to the project/files to translate (e.g. C:/Users/you/Projects/MyApp). Empty = the current directory. Override per run with /translate --path <path> or /translate <path>.",
+  "projectPath": "",
+
+  "$comment_scope": "Which files are translatable, relative to projectPath. include/exclude are glob lists.",
+  "include": ["src/i18n/**", "locales/**", "content/**", "languages/**"],
+  "exclude": ["**/node_modules/**", "**/dist/**", "**/*.min.*", "translations/**"],
+
+  "$comment_output": "Where translated files are written. mode 'tree' (default) copies each source file to <projectPath>/<dir>/<lang>/<original-relative-path> and translates the COPY, leaving originals untouched. mode 'inplace' writes siblings named <name>.<lang>.<ext> next to the source. mode 'catalog' edits existing per-language message-catalog files in place (messages.<lang>.ts etc.).",
+  "output": {
+    "mode": "tree",
+    "dir": "translations"
+  },
+
+  "$comment_gates": "verifyCmd runs per-batch (cheap type/lint check). buildCmd runs once at the end. Leave empty for plain document sets.",
+  "verifyCmd": "",
+  "buildCmd": "",
+
+  "$comment_wordpress": "For WordPress projects. textdomain is the plugin/theme text domain; makeMo/makeJson compile artifacts from the translated .po files (needs WP-CLI or gettext tools).",
+  "wordpress": {
+    "textdomain": "",
+    "makeJson": false,
+    "makeMo": false
+  }
+}

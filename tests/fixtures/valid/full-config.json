@@ -1,0 +1,22 @@
+{
+  "sourceLang": "en",
+  "targetLangs": ["de", "fr", "es", "pt-BR"],
+  "specialization": "banking",
+  "glossary": "projects/myapp/glossary.csv",
+  "context": "A retail banking app for consumers; formal, trustworthy register.",
+  "formality": "formal",
+  "doNotTranslate": [
+    "Keep placeholders {name}, {id} intact and identical.",
+    "IBAN and SWIFT/BIC codes are pass-through data — leave verbatim."
+  ],
+  "research": "first-run",
+  "queries": "high-stakes",
+  "projectPath": "C:/Projects/MyApp",
+  "include": ["src/i18n/**", "content/**"],
+  "exclude": ["**/node_modules/**", "translations/**"],
+  "output": { "mode": "tree", "dir": "translations" },
+  "verifyCmd": "npm run typecheck",
+  "buildCmd": "npm run build",
+  "creditInCommit": true,
+  "wordpress": { "textdomain": "my-plugin", "makeJson": true, "makeMo": false }
+}

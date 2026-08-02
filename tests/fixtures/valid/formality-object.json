@@ -1,0 +1,5 @@
+{
+  "sourceLang": "en",
+  "targetLangs": ["de", "fr", "ja"],
+  "formality": { "default": "formal", "de": "informal", "ja": "formal" }
+}

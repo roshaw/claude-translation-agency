@@ -9,6 +9,29 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [0.10.0] — 2026-08-02
+
+### Added
+- **Deterministic, CI-able test suite** (`tests/check.mjs`, run with `npm test` /
+  `npm start`). The toolkit's release-hygiene invariants — the ones previously
+  checked by hand every release — are now guarded by a pure-Node checker (built-ins
+  + one dev dep, `ajv`). It runs as **HARD** checks (any failure exits non-zero):
+  **version consistency** (the `VERSION` string must match `package.json`, the
+  `CLAUDE.md` header, the README badge + "Current version" line, and the `VERSION`
+  tree comment in both docs); **changelog** (a dated `## [X.Y.Z] — <date>` heading
+  and a `[X.Y.Z]:` compare-link for the current version); **schema health** (the
+  JSON Schema compiles under ajv draft 2020-12, the template config validates, and
+  every fixture in `tests/fixtures/valid/` validates while every fixture in
+  `tests/fixtures/invalid/` is rejected — proving `additionalProperties: false` and
+  the enums bite); **cross-references** (each specialization, skill dir, and agent
+  name is wired into the docs, and each skill dir has a `SKILL.md`);
+  **frontmatter lint** (skills carry name + description; agents carry name +
+  description + model + tools); and **JSON validity** of the config, schema, and
+  `package.json`. One **SOFT** check warns (never fails) when the release's git tag
+  is not yet present. Adds a root `package.json` (`private`, dev-dep `ajv@^8`) and
+  fixtures under `tests/fixtures/`. Purely additive test tooling — no skill, agent,
+  or config behavior changed.
+
 ## [0.9.0] — 2026-08-02
 
 ### Added
@@ -225,7 +248,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.8.1...v0.9.0
 [0.8.1]: https://github.com/roshaw/claude-translation-agency/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.7.0...v0.8.0

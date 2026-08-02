@@ -2,7 +2,7 @@
 
 > Ready-to-use Claude skills and agents that translate **any project or set of files into any language**, with a domain **specialization** you choose per run.
 
-[![Version](https://img.shields.io/badge/version-0.9.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.10.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 Translation Agency is a portable localization pipeline for [Claude Code](https://claude.com/claude-code) / Cowork. It was extracted and generalized from a production legal-fee-calculator localization system, whose three-tier "translator panel" and adversarial-QA design proved out over many real passes — then had all its project-specific hardwiring lifted out into settings so the same machinery works on a WordPress plugin, a React app's i18n, a folder of Markdown docs, or a batch of JSON files.
@@ -287,9 +287,11 @@ translation-agency/
 ├── README.md                     # this file
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 0.9.0
+├── VERSION                       # 0.10.0
+├── package.json                  # npm test / npm start → tests/check.mjs (dev dep: ajv)
 ├── translation.config.json       # default settings
 ├── translation.config.schema.json # JSON Schema for the config (editor autocomplete + validation)
+├── tests/                        # check.mjs invariant checker + fixtures/ (valid + invalid)
 ├── .claude/
 │   ├── agents/                   # translate-lead, -senior, -junior, -researcher
 │   └── skills/                   # translate-init/, translate/, translate-add-locale/, translate-audit/
@@ -299,11 +301,11 @@ translation-agency/
 
 ## Versioning
 
-This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **0.9.0**.
+This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **0.10.0**.
 
 ## Contributing
 
-Issues and pull requests welcome. Good first contributions: new `specializations/*.md` modules, additional file-format handling, and glossary tooling. Please add a changelog entry under `[Unreleased]` with your change.
+Issues and pull requests welcome. Good first contributions: new `specializations/*.md` modules, additional file-format handling, and glossary tooling. Please add a changelog entry under `[Unreleased]` with your change, and run `npm install && npm test` before submitting — a deterministic checker (`tests/check.mjs`) guards version consistency, the changelog, config-schema health, cross-references, and frontmatter.
 
 ## Disclaimer
 

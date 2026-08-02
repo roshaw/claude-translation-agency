@@ -1,0 +1,13 @@
+{
+  "private": true,
+  "name": "translation-agency",
+  "version": "0.10.0",
+  "type": "module",
+  "scripts": {
+    "test": "node tests/check.mjs",
+    "start": "node tests/check.mjs"
+  },
+  "devDependencies": {
+    "ajv": "^8"
+  }
+}

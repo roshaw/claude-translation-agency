@@ -1,6 +1,6 @@
 # Translation Agency
 
-**Version 0.9.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
+**Version 0.10.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
 
 A reusable, project-agnostic translation system: ready-to-use **skills** and **agents** that
 translate **any project or set of files into any language**, with a domain **specialization** you
@@ -237,6 +237,27 @@ do-not-translate items recorded in the project's `notes.md`.
 - **Never changes source facts, never touches the source files, never pushes.** It translates copy;
   it doesn't add keys, edit numbers, or deploy.
 
+## Testing
+
+A deterministic, CI-able checker guards the release-hygiene invariants this repo used to verify by
+hand. Run it any time — always before a release commit:
+
+    npm install   # once, pulls the single dev dep (ajv)
+    npm test      # runs tests/check.mjs (also wired to npm start)
+
+`tests/check.mjs` is pure Node (built-ins + `ajv`) and exits non-zero if any **HARD** check fails:
+**version consistency** (`VERSION` matches `package.json`, the `CLAUDE.md` header, the README badge +
+"Current version" line, and the `VERSION` tree comment in both docs); **changelog** (a dated
+`## [X.Y.Z] — <date>` heading + `[X.Y.Z]:` compare-link for the current version); **schema health**
+(the JSON Schema compiles under ajv draft 2020-12, the template config validates, and every fixture
+in `tests/fixtures/valid/` validates while every fixture in `tests/fixtures/invalid/` is rejected);
+**cross-references** (each specialization / skill dir / agent name is wired into the docs, and each
+skill dir has a `SKILL.md`); **frontmatter lint** (skills carry name + description; agents carry
+name + description + model + tools); and **JSON validity** of the config, schema, and `package.json`.
+One **SOFT** check warns (never fails) when the release's `vX.Y.Z` git tag isn't present yet — expected
+during the release commit itself, before the tag is pushed. Add fixtures under `tests/fixtures/` when
+you extend the schema; tighten a check's logic rather than weakening it if it's genuinely too strict.
+
 ## Release & commit convention (this repo)
 
 **Every commit-and-push bumps the version first.** Before staging a commit, decide the bump from
@@ -248,9 +269,10 @@ without a version bump in the same commit.
    - **MINOR** (`0.2.0 → 0.3.0`) — a new feature: a new `specializations/*.md`, a new format,
      a new skill/agent, a new config option.
    - **MAJOR** (`0.2.x → 1.0.0`) — a breaking change to how skills, agents, or config work.
-2. **Apply the bump everywhere the version appears**: `VERSION`, the `CLAUDE.md` header line, the
-   `README.md` badge + "Current version" line + `VERSION` tree comment, and both `VERSION` tree
-   comments. (Grep the old version string to catch them all.)
+2. **Apply the bump everywhere the version appears**: `VERSION`, `package.json` `"version"`, the
+   `CLAUDE.md` header line, the `README.md` badge + "Current version" line + `VERSION` tree comment,
+   and both `VERSION` tree comments. (Grep the old version string to catch them all.) The
+   `npm test` **version-consistency check** guards every one of these spots — run it after bumping.
 3. **Update `CHANGELOG.md`**: move the `[Unreleased]` entries under a new `## [X.Y.Z] — <date>`
    heading (today's date) and refresh the compare-links at the bottom.
 4. **Commit and push** — one commit that carries both the change and its version bump.
@@ -266,10 +288,14 @@ Translation Agency/
 ├── README.md                     # GitHub landing page
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 0.9.0
+├── VERSION                       # 0.10.0
 ├── .gitignore
+├── package.json                  # npm test / npm start → tests/check.mjs; dev dep ajv
 ├── translation.config.json      # default settings (source/target langs, specialization, output, formats)
 ├── translation.config.schema.json # JSON Schema for the config (editor autocomplete + typo-catching)
+├── tests/
+│   ├── check.mjs                 # deterministic invariant checker (npm test)
+│   └── fixtures/                 # valid/ (must validate) + invalid/ (must be rejected)
 ├── .claude/
 │   ├── agents/
 │   │   ├── translate-lead.md       # Opus — orchestrator + adversarial QA (C1–C7)

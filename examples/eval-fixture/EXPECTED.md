@@ -22,11 +22,13 @@ deterministic assertion script reports **0 violations** on a clean target.
 
 - The glossary (`glossary.csv`) defines `sign in → anmelden` (de). Defect #3 is only detectable
   because the source value `auth.signInPrompt` contains the source term "sign in" and the correct
-  target must contain "anmelden".
-- The correct German for `auth.signInPrompt` is phrased with the literal lemma **`anmelden`**
-  (`"Bitte zum Fortfahren anmelden."`) rather than the separable-verb surface form
-  (*"melden Sie sich an"*), so the substring check in `tests/eval-assert.mjs` can confirm the term
-  deterministically.
+  target must contain the glossary term "anmelden".
+- The glossary `term` cell lists the **accepted surface forms** of the term, `|`-separated:
+  `anmelden|melden * an`. The wrong-term check in `tests/eval-assert.mjs` passes if **any** form
+  appears (whitespace-tolerant, `*` = intervening words, word-anchored). So both the literal lemma
+  (`"Bitte zum Fortfahren anmelden."`) **and** the natural separable-verb rendering
+  (`"Bitte melden Sie sich an, um fortzufahren."`, see `panel-output/locales/de.json`) are accepted,
+  while the wrong verb `einloggen` — and the antonym `abmelden` (sign-out) — are correctly rejected.
 - Defects #5 (MISSING KEY), #6 (EMPTY), #1 (LEFTOVER), and #7 (MISSING-IN-SOURCE) are exactly the
   four gap classes the **coverage** audit (`/translate-audit`) reports. #7 must be called out as a
   **source gap**, not a target gap.

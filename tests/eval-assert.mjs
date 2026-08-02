@@ -1,12 +1,17 @@
 #!/usr/bin/env node
 // Deterministic assertion harness for the Tier-2 behavioral eval.
 //
-//   node tests/eval-assert.mjs <target.json> <source.json> [glossary.csv] [--formality formal]
+//   node tests/eval-assert.mjs <target.json> <source.json> [glossary.csv] [--formality formal] [--ignore-source-gaps]
 //
 // Loads a source message catalog and a translated target catalog, then checks the
 // post-conditions the translator panel + coverage audit are supposed to guarantee.
 // Prints one line per violation and a final "N violations" line; exits 1 if any,
 // 0 if clean. Pure Node built-ins — no network, no LLM, no dependencies.
+//
+// --ignore-source-gaps excludes the `missing-in-source` class from the reported
+// violations (leaving all other classes intact). Use it when grading the translator
+// PANEL, whose job is the source→target direction: a source gap (a key present in the
+// target but not the source) is a documented human-decision class, not a panel failure.
 //
 // It is ALSO importable: `import { evaluate, parseGlossary, flatten } from './eval-assert.mjs'`.
 // The CLI only runs when the file is executed directly (see the guard at the bottom),
@@ -18,7 +23,7 @@
 //   missing-in-source  — a target key with no matching source key       (coverage; source gap)
 //   leftover           — target value byte-identical to source (C1)
 //   placeholder        — a {token}/%s present in source, gone in target (C4)
-//   wrong-term         — glossary source term in source, target term absent (C2)
+//   wrong-term         — glossary source term in source, no accepted target form (C2)
 //   formality          — informal German marker where formal required   (C6)
 
 import fs from 'node:fs';
@@ -49,6 +54,35 @@ const INFORMAL_DE = ['du', 'dich', 'dir', 'dein', 'deine', 'deinen', 'deinem', '
 const INFORMAL_DE_RE = new RegExp(`\\b(?:${INFORMAL_DE.join('|')})\\b`, 'i');
 
 const latinLetters = (s) => (String(s).match(/[A-Za-z]/g) || []).length;
+
+// Escape a literal string for use inside a RegExp.
+const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+// Compile one glossary term FORM into a whitespace-tolerant, case-insensitive RegExp.
+//
+// A glossary `term` cell may hold a `|`-separated list of ACCEPTED SURFACE FORMS for
+// the term (e.g. `anmelden|melden * an`) — the check passes if ANY of them appears in
+// the target. This lets a correct inflected / separable-verb rendering satisfy the
+// glossary: German "anmelden" split across the clause ("melden Sie sich an").
+//
+// Within a form, whitespace-separated word-tokens are matched in order, tolerant of any
+// amount of intervening whitespace; the token `*` matches one or more intervening words.
+// Literal tokens are anchored at word boundaries, so "anmelden" (sign-in) never matches
+// inside "abmelden" (sign-out) — the lemma and its antonym stay distinct.
+export function compileTermForm(form) {
+  const tokens = String(form).trim().split(/\s+/).filter(Boolean);
+  const parts = tokens.map((tok) =>
+    tok === '*' ? '\\S+(?:\\s+\\S+)*' : `\\b${reEsc(tok)}\\b`
+  );
+  return new RegExp(parts.join('\\s+'), 'i');
+}
+
+// Does the target satisfy a glossary term (any of its accepted `|`-separated forms)?
+export function termSatisfied(term, target) {
+  const forms = String(term).split('|').map((f) => f.trim()).filter(Boolean);
+  if (!forms.length) return true;
+  return forms.some((f) => compileTermForm(f).test(target));
+}
 
 // Minimal CSV parser (handles double-quoted fields with embedded commas/quotes).
 function parseCsvLine(line) {
@@ -88,8 +122,8 @@ export function parseGlossary(csvText) {
 
 // --- the check ------------------------------------------------------------
 
-// evaluate({ target, source, glossary, formality, exempt }) -> [{ class, key, reason }]
-export function evaluate({ target, source, glossary = [], formality = null, exempt = [] }) {
+// evaluate({ target, source, glossary, formality, exempt, ignoreSourceGaps }) -> [{ class, key, reason }]
+export function evaluate({ target, source, glossary = [], formality = null, exempt = [], ignoreSourceGaps = false }) {
   const violations = [];
   const src = flatten(source);
   const tgt = flatten(target);
@@ -104,9 +138,12 @@ export function evaluate({ target, source, glossary = [], formality = null, exem
     }
   }
   // COVERAGE — target keys with no source key (source gap the translator can't auto-fill).
-  for (const key of Object.keys(tgt)) {
-    if (!(key in src)) {
-      violations.push({ class: 'missing-in-source', key, reason: 'present in target but not in source (source gap)' });
+  // Suppressed under --ignore-source-gaps: it is a human-decision class, not a panel failure.
+  if (!ignoreSourceGaps) {
+    for (const key of Object.keys(tgt)) {
+      if (!(key in src)) {
+        violations.push({ class: 'missing-in-source', key, reason: 'present in target but not in source (source gap)' });
+      }
     }
   }
 
@@ -130,11 +167,11 @@ export function evaluate({ target, source, glossary = [], formality = null, exem
       }
     }
 
-    // WRONG TERM (C2) — where the source uses a glossary source term, the target
-    // must contain the glossary target term (case-insensitive substring).
+    // WRONG TERM (C2) — where the source uses a glossary source term, the target must
+    // contain the glossary term in one of its accepted surface forms (see termSatisfied:
+    // `|`-separated forms, whitespace-tolerant, `*` = intervening words, word-anchored).
     for (const g of glossary) {
-      if (s.toLowerCase().includes(g.source.toLowerCase()) &&
-          !t.toLowerCase().includes(g.term.toLowerCase())) {
+      if (s.toLowerCase().includes(g.source.toLowerCase()) && !termSatisfied(g.term, t)) {
         violations.push({ class: 'wrong-term', key, reason: `expected glossary term "${g.term}" for "${g.source}", not found` });
       }
     }
@@ -157,19 +194,21 @@ function main(argv) {
   const args = argv.slice(2);
   const positional = [];
   let formality = null;
+  let ignoreSourceGaps = false;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--formality') formality = args[++i] ?? null;
+    else if (args[i] === '--ignore-source-gaps') ignoreSourceGaps = true;
     else positional.push(args[i]);
   }
   const [targetPath, sourcePath, glossaryPath] = positional;
   if (!targetPath || !sourcePath) {
-    console.error('usage: node tests/eval-assert.mjs <target.json> <source.json> [glossary.csv] [--formality formal]');
+    console.error('usage: node tests/eval-assert.mjs <target.json> <source.json> [glossary.csv] [--formality formal] [--ignore-source-gaps]');
     process.exit(2);
   }
   const target = loadJson(targetPath);
   const source = loadJson(sourcePath);
   const glossary = glossaryPath ? parseGlossary(fs.readFileSync(glossaryPath, 'utf8')) : [];
-  const violations = evaluate({ target, source, glossary, formality });
+  const violations = evaluate({ target, source, glossary, formality, ignoreSourceGaps });
 
   for (const v of violations) console.log(`  [${v.class}] ${v.key}: ${v.reason}`);
   console.log(`${violations.length} violations`);

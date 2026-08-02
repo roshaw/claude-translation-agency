@@ -30,6 +30,7 @@ examples/eval-fixture/
 │   ├── en.json                      # SOURCE (10 keys)
 │   └── de.json                      # DEFECTIVE target — 7 planted defects, one per key
 ├── expected-good/locales/de.json    # a fully CORRECT de translation (self-test baseline)
+├── panel-output/locales/de.json     # correct target using the separable form "melden Sie sich an"
 ├── EXPECTED.md                      # ANSWER KEY — every defect, its class, and the fix
 └── README.md                        # this file
 ```
@@ -70,18 +71,23 @@ Checks that a real `/translate` run **fixes** the panel-class defects (C1/C2/C4/
        /translate --full --path "$env:TEMP/eval-run"
 
 3. Re-run the deterministic assertion on the panel's output, using the **original** source + glossary
-   as the yardstick:
+   as the yardstick. Pass `--ignore-source-gaps` so the assertion grades only what the panel is
+   responsible for (the source→target direction):
 
-       node tests/eval-assert.mjs "$env:TEMP/eval-run/locales/de.json" examples/eval-fixture/locales/en.json examples/eval-fixture/glossary.csv --formality formal
+       node tests/eval-assert.mjs "$env:TEMP/eval-run/locales/de.json" examples/eval-fixture/locales/en.json examples/eval-fixture/glossary.csv --formality formal --ignore-source-gaps
 
-**Expected: `0 violations`** — i.e. the panel fixed the leftover (C1), restored the `{username}`
-placeholder (C4), corrected `einloggen → anmelden` (C2), and used formal register (C6). Any remaining
-violation is a **real panel miss** — open it against [`EXPECTED.md`](EXPECTED.md) and investigate.
+**Expected: exactly `0 violations`** — i.e. the panel fixed the leftover (C1), restored the
+`{username}` placeholder (C4), corrected `einloggen → anmelden` (C2, in whichever surface form —
+the natural separable `"melden Sie sich an"` is accepted), and used formal register (C6). Any
+remaining violation is a **real panel miss** — open it against [`EXPECTED.md`](EXPECTED.md) and
+investigate.
 
-**One caveat:** the panel will **not** invent the **missing-in-source** key (`auth.rememberMe`) —
-that's a documented human-decision class, not something `/translate` auto-fills. If you translate the
-copy in place, that orphan simply carries through; the assertion above only measures the source→target
-direction, so it won't fail on it. (Eval A is where the source gap is surfaced for a human to decide.)
+**On the source gap:** the panel will **not** invent — nor is it a failure that it preserves — the
+**missing-in-source** key (`auth.rememberMe`, present in the target but absent from `en.json`). That
+is a documented **human-decision class**, surfaced by **Eval A** (and by the panel's own
+open-questions), not a panel miss. `--ignore-source-gaps` excludes exactly that class from the count,
+which is why the expectation above is a clean `0`. (Omit the flag and the same run reports the one
+`missing-in-source` orphan — that path is what the Tier-1 self-test exercises.)
 
 ## Why the split
 

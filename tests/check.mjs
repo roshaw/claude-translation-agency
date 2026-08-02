@@ -350,6 +350,90 @@ const version = read('VERSION').trim();
 }
 
 // ===========================================================================
+// (g2) EVAL WRONG-TERM SURFACE FORMS  [HARD]
+// ===========================================================================
+// The glossary term for de is the German separable verb "anmelden". A correct formal
+// rendering splits it ("melden Sie sich an"), which a bare-substring check would wrongly
+// flag. These self-tests pin the accepted-forms behavior deterministically: the natural
+// separable output is ACCEPTED, the wrong verb ("einloggen") is still REJECTED, and the
+// antonym "abmelden" (sign-out) never satisfies "anmelden" (sign-in).
+{
+  const FX = 'examples/eval-fixture';
+  let setupErr = null, source = null, glossary = [];
+  try {
+    source = readJson(`${FX}/locales/en.json`);
+    glossary = parseGlossary(read(`${FX}/glossary.csv`));
+  } catch (e) { setupErr = e.message; }
+
+  if (setupErr) {
+    hard('EVAL wrong-term fixture loads', false, `could not load fixture: ${setupErr}`);
+  } else {
+    // (1) separable-verb panel output is ACCEPTED — 0 violations overall.
+    let accViol = null, accErr = null;
+    try {
+      accViol = evaluate({ target: readJson(`${FX}/panel-output/locales/de.json`), source, glossary, formality: 'formal' });
+    } catch (e) { accErr = e.message; }
+    hard(
+      'EVAL wrong-term accepts separable form',
+      !accErr && accViol.length === 0,
+      accErr ? `errored: ${accErr}` :
+        accViol.length === 0 ? 'panel-output/locales/de.json ("melden Sie sich an") -> 0 violations' :
+        `expected 0 violations, got ${accViol.length}: ${accViol.map((v) => `${v.class}:${v.key}`).join(', ')}`
+    );
+
+    // (2) the wrong verb ("einloggen") in the defective target is still REJECTED.
+    let rejViol = null, rejErr = null;
+    try {
+      rejViol = evaluate({ target: readJson(`${FX}/locales/de.json`), source, glossary, formality: 'formal' });
+    } catch (e) { rejErr = e.message; }
+    const rejWrong = (rejViol || []).filter((v) => v.class === 'wrong-term' && v.key === 'auth.signInPrompt');
+    hard(
+      'EVAL wrong-term rejects wrong verb',
+      !rejErr && rejWrong.length === 1,
+      rejErr ? `errored: ${rejErr}` :
+        rejWrong.length === 1 ? 'defective "einloggen" -> wrong-term flag on auth.signInPrompt' :
+        `expected 1 wrong-term flag on auth.signInPrompt, got ${rejWrong.length}`
+    );
+
+    // (3) "abmelden" (sign-out) must NOT satisfy the "anmelden" (sign-in) glossary term.
+    let distinct = null, distinctErr = null;
+    try {
+      distinct = evaluate({
+        target: { auth: { signInPrompt: 'Bitte zum Fortfahren abmelden.' } },
+        source: { auth: { signInPrompt: 'Please sign in to continue' } },
+        glossary,
+      }).filter((v) => v.class === 'wrong-term');
+    } catch (e) { distinctErr = e.message; }
+    hard(
+      'EVAL wrong-term keeps anmelden vs abmelden distinct',
+      !distinctErr && distinct.length === 1,
+      distinctErr ? `errored: ${distinctErr}` :
+        distinct.length === 1 ? '"abmelden" does not satisfy glossary "anmelden" -> correctly flagged' :
+        `expected "abmelden" flagged as wrong-term, got ${distinct.length}`
+    );
+
+    // (4) --ignore-source-gaps drops ONLY the missing-in-source class from the defective target.
+    let withGap = null, noGap = null, gapErr = null;
+    try {
+      const args = { target: readJson(`${FX}/locales/de.json`), source, glossary, formality: 'formal' };
+      withGap = evaluate(args);
+      noGap = evaluate({ ...args, ignoreSourceGaps: true });
+    } catch (e) { gapErr = e.message; }
+    const droppedOnlyGap = !gapErr &&
+      withGap.some((v) => v.class === 'missing-in-source') &&
+      !noGap.some((v) => v.class === 'missing-in-source') &&
+      noGap.length === withGap.filter((v) => v.class !== 'missing-in-source').length;
+    hard(
+      'EVAL --ignore-source-gaps drops only source gaps',
+      droppedOnlyGap,
+      gapErr ? `errored: ${gapErr}` :
+        droppedOnlyGap ? `missing-in-source suppressed, other classes intact (${withGap.length} -> ${noGap.length})` :
+        `flag did not cleanly drop only missing-in-source (${withGap && withGap.length} -> ${noGap && noGap.length})`
+    );
+  }
+}
+
+// ===========================================================================
 // (h) GIT TAG  [SOFT]
 // ===========================================================================
 {

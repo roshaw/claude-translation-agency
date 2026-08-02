@@ -9,6 +9,37 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [1.0.0] — 2026-08-03
+
+**First stable release.** This is a **stability milestone, not a breaking change** — nothing about
+the skills, agents, or `translation.config.json` compatibility changes. Everything that worked at
+0.11.0 works identically at 1.0.0; the bump marks the toolkit as production-ready and locks the
+public contract (skills, agent tiers, config schema, output modes) under SemVer going forward. The
+only code changes in this release are the two additive, test-only eval-harness fixes below.
+
+### Fixed
+- **Wrong-term check tolerates inflected / separable-verb surface forms** (`tests/eval-assert.mjs`).
+  A glossary `term` cell may now list **accepted surface forms**, `|`-separated (e.g.
+  `anmelden|melden * an`), and the C2 check passes if **any** form appears — matched
+  whitespace-tolerant and case-insensitive, with `*` standing for one or more intervening words and
+  literal tokens anchored at word boundaries. This fixes a false positive found in a live Eval B run:
+  a correct German formal rendering splits the separable verb *anmelden* across the clause (*"Bitte
+  melden Sie sich an, um fortzufahren."*), which the previous bare-substring match flagged as a wrong
+  term. The eval-fixture glossary's `de` row now declares both the lemma and the separable form, so
+  the panel's natural output is accepted. The lemma stays distinct from its antonym — *abmelden*
+  (sign-out) never satisfies *anmelden* (sign-in) — and the genuinely-wrong verb *einloggen* is still
+  rejected. New HARD self-tests in `tests/check.mjs` (plus a `panel-output/locales/de.json` reference
+  target) pin all three cases; the known-good target still reports 0 violations and the defective
+  target still flags every planted class.
+- **Source gaps no longer count as a panel failure** (`tests/eval-assert.mjs`). A new
+  `--ignore-source-gaps` flag excludes the `missing-in-source` class (a key present in the target but
+  absent from the source) from the reported violations, leaving every other class intact. A source
+  gap is a documented **human-decision** class the translator panel is not responsible for auto-filling,
+  so Eval B — which grades the panel's source→target work — now runs with the flag and expects
+  **exactly 0 violations**. Without the flag, behavior is unchanged, so the Tier-1 self-test still
+  exercises the `missing-in-source` path. The Eval B runbook wording in
+  `examples/eval-fixture/README.md` is corrected accordingly.
+
 ## [0.11.0] — 2026-08-03
 
 ### Added
@@ -275,7 +306,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.11.0...v1.0.0
 [0.11.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.8.1...v0.9.0

@@ -9,6 +9,19 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-08-02
+
+### Added
+- **Attribution** — the tool now credits itself, safely. Every `/translate` run's
+  **report always** ends with `Translated with Translation Agency <version> —
+  <repo URL>` (operator-facing; never written into your files). New optional
+  config `creditInCommit` (default `false`): when `true` and a run actually
+  commits (`inplace`/`catalog` in a git repo), the translation commit gets a
+  `Translated-with: Translation Agency <version> (<repo URL>)` trailer — credit in
+  git history, still nothing stamped inside the translated files. No attribution
+  is ever injected into file headers, frontmatter, or a project README. README
+  documents the flag with an invitation to enable it if the tool has been helpful.
+
 ## [0.4.1] — 2026-08-02
 
 ### Changed
@@ -123,7 +136,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/roshaw/claude-translation-agency/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/roshaw/claude-translation-agency/compare/v0.3.0...v0.3.1

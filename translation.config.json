@@ -39,6 +39,9 @@
   "verifyCmd": "",
   "buildCmd": "",
 
+  "$comment_creditInCommit": "OPTIONAL attribution in git history. Default false. When true, and only when the run actually commits (inplace/catalog mode in a git repo), the translation commit gets a 'Translated-with: Translation Agency <version> (<repo URL>)' trailer line — nothing is ever written into the translated files themselves. The run report ALWAYS credits the tool regardless of this setting; this flag only controls whether that credit also lands in the commit message. Set it to true if the tool has been helpful and you're happy to give credit in your project's history.",
+  "creditInCommit": false,
+
   "$comment_wordpress": "For WordPress projects. textdomain is the plugin/theme text domain; makeMo/makeJson compile artifacts from the translated .po files (needs WP-CLI or gettext tools).",
   "wordpress": {
     "textdomain": "",

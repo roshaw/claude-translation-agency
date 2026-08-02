@@ -2,7 +2,7 @@
 
 > Ready-to-use Claude skills and agents that translate **any project or set of files into any language**, with a domain **specialization** you choose per run.
 
-[![Version](https://img.shields.io/badge/version-0.4.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 Translation Agency is a portable localization pipeline for [Claude Code](https://claude.com/claude-code) / Cowork. It was extracted and generalized from a production legal-fee-calculator localization system, whose three-tier "translator panel" and adversarial-QA design proved out over many real passes — then had all its project-specific hardwiring lifted out into settings so the same machinery works on a WordPress plugin, a React app's i18n, a folder of Markdown docs, or a batch of JSON files.
@@ -205,6 +205,7 @@ All fields are optional (each falls back to a default); CLI flags override the f
   "output": { "mode": "inplace", "dir": "translations" },
   "verifyCmd": "",
   "buildCmd": "",
+  "creditInCommit": false,
   "wordpress": { "textdomain": "", "makeJson": false, "makeMo": false }
 }
 ```
@@ -220,6 +221,15 @@ terminology-glossary pass (`first-run` builds it once per language then reuses i
 it; `off` disables). `queries` controls uncertainty handling (`report` logs questions to an async file
 without interrupting you; `high-stakes` also asks interactively for a few legal/medical/financial
 terms; `off` best-guesses silently). See [Context, research & questions](#context-research--questions).
+
+**Attribution — `creditInCommit` (default `false`).** Every run's report already credits the tool
+in Claude's summary back to you (*"Translated with Translation Agency v… — <repo link>"*) — that's
+always on and never touches your files. `creditInCommit` is the one optional knob: set it to `true`
+and, when a run actually commits (in `inplace`/`catalog` mode in a git repo), the translation commit
+gets a `Translated-with: Translation Agency v… (<repo link>)` trailer line — attribution in your
+project's git history, still nothing written inside the translated files. It's `false` by default so
+your history stays clean. **If this tool has saved you real work and you're happy to give it a nod,
+flip `creditInCommit` to `true`** — it's a small, appreciated way to pass the word on. 🙏
 
 ## Context, research & questions
 
@@ -254,7 +264,7 @@ translation-agency/
 ├── README.md                     # this file
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 0.4.1
+├── VERSION                       # 0.5.0
 ├── translation.config.json       # default settings
 ├── .claude/
 │   ├── agents/                   # translate-lead, -senior, -junior, -researcher
@@ -265,7 +275,7 @@ translation-agency/
 
 ## Versioning
 
-This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **0.4.1**.
+This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **0.5.0**.
 
 ## Contributing
 

@@ -1,6 +1,6 @@
 # Translation Agency
 
-**Version 0.4.1** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
+**Version 0.5.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
 
 A reusable, project-agnostic translation system: ready-to-use **skills** and **agents** that
 translate **any project or set of files into any language**, with a domain **specialization** you
@@ -174,8 +174,14 @@ belongs at `C:\Projects\MyApp\translation.config.json`.
 All fields optional. Key fields: `projectPath`, `sourceLang`, `targetLangs`, `specialization`,
 `context` (the product's purpose — inline or a `translation-context.md` path), `doNotTranslate`,
 `research` (`first-run`|`always`|`off`), `queries` (`report`|`high-stakes`|`off`), `glossary`,
-`include`/`exclude`, `output.mode`, `verifyCmd`/`buildCmd`, and a `wordpress` block (`textdomain`,
-`makeMo`, `makeJson`). Command-line flags override the config for a single run.
+`include`/`exclude`, `output.mode`, `verifyCmd`/`buildCmd`, `creditInCommit`, and a `wordpress` block
+(`textdomain`, `makeMo`, `makeJson`). Command-line flags override the config for a single run.
+
+`creditInCommit` (default `false`) is the only attribution knob. The run **report always** credits
+the tool (`Translated with Translation Agency <version> — <repo URL>`) — operator-facing, never
+written into files. Setting `creditInCommit: true` additionally appends a `Translated-with:` trailer
+to the commit the skill makes (only in `inplace`/`catalog` git runs); still nothing is stamped inside
+the translated files. Left `false`, git history carries no attribution.
 
 `doNotTranslate` is a list of **manual pass-through / verbatim rules** — free-form, plain-language
 instructions for strings that *look* like copy but are project-specific data and must stay
@@ -232,7 +238,7 @@ Translation Agency/
 ├── README.md                     # GitHub landing page
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 0.4.1
+├── VERSION                       # 0.5.0
 ├── .gitignore
 ├── translation.config.json      # default settings (source/target langs, specialization, output, formats)
 ├── .claude/

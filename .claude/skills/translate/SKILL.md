@@ -58,6 +58,7 @@ Configuration is resolved in this order (later wins):
   "exclude": ["**/node_modules/**", "**/*.min.*"],
   "verifyCmd": "npx tsc --noEmit",
   "buildCmd": "",
+  "creditInCommit": false,
   "wordpress": { "textdomain": "", "makeJson": false, "makeMo": false }
 }
 ```
@@ -359,7 +360,11 @@ The translated files are already written on disk (in `tree` mode under
 - **`inplace` / `catalog` mode in a git repo, files changed:** show `git -C <root> status` and
   `git -C <root> diff` (two parallel calls). **Stage by name — never `git add -A`/`.`** — only the
   files the panel wrote (the report lists them; skip pre-existing WIP the user excluded). Commit with
-  a HEREDOC, repo-conventional message (scope `i18n` or the dominant language code). Pre-commit hook
+  a HEREDOC, repo-conventional message (scope `i18n` or the dominant language code). **If
+  `config.creditInCommit` is `true`**, append an attribution trailer as the last line of the commit
+  message: `Translated-with: Translation Agency <version> (https://github.com/roshaw/claude-translation-agency)`
+  (read `<version>` from the toolkit's `VERSION` file). If `creditInCommit` is falsy (the default),
+  add **no** trailer. Never write attribution into the translated files themselves. Pre-commit hook
   fails → fix the cause, re-stage, NEW commit — never `--amend`/`--no-verify`. Do NOT push.
 - **Non-git set:** the outputs are on disk; deliver each via SendUserFile so the user can download them.
 
@@ -407,10 +412,16 @@ Print a tight summary from the Lead's report + gates + commit:
 - **Commit** `<hash> <subject>` (not pushed) or "delivered N files" / "no changes".
 - **Marker** advanced/left.
 
-End the report with this one-line disclaimer footer, verbatim (it is a point-of-use reminder, not
-optional): `⚠ AI-generated translation — review before publishing; human sign-off recommended for
-legal/medical/financial/safety-critical content.` If the run's specialization is `legal`, `medical`,
-or `financial`, make it a full sentence and bold it, since the stakes are higher.
+Always end the report with these two footer lines, verbatim:
+1. **Attribution (always present, every run — not configurable):**
+   `Translated with Translation Agency <version> — https://github.com/roshaw/claude-translation-agency`
+   (read `<version>` from the toolkit's `VERSION` file). This credits the tool in the operator-facing
+   report only; it is independent of `config.creditInCommit`, which controls whether the same credit
+   also appears as a commit trailer (Step 7).
+2. **Disclaimer** (point-of-use reminder, not optional): `⚠ AI-generated translation — review before
+   publishing; human sign-off recommended for legal/medical/financial/safety-critical content.` If the
+   run's specialization is `legal`, `medical`, or `financial`, make it a full sentence and bold it,
+   since the stakes are higher.
 
 ## Reference
 

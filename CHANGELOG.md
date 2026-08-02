@@ -9,6 +9,13 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [0.3.1] — 2026-08-02
+
+### Changed
+- **Release convention now requires tagging.** `CLAUDE.md`'s "Release & commit
+  convention" makes an annotated `vX.Y.Z` tag a mandatory step of every version
+  bump (was "tag if cutting a release"), keeping the tag list 1:1 with releases.
+
 ## [0.3.0] — 2026-08-02
 
 ### Added
@@ -90,7 +97,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/roshaw/claude-translation-agency/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/roshaw/claude-translation-agency/releases/tag/v0.1.0

@@ -1,6 +1,6 @@
 # Translation Agency
 
-**Version 0.3.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
+**Version 0.3.1** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
 
 A reusable, project-agnostic translation system: ready-to-use **skills** and **agents** that
 translate **any project or set of files into any language**, with a domain **specialization** you
@@ -207,8 +207,10 @@ without a version bump in the same commit.
    comments. (Grep the old version string to catch them all.)
 3. **Update `CHANGELOG.md`**: move the `[Unreleased]` entries under a new `## [X.Y.Z] — <date>`
    heading (today's date) and refresh the compare-links at the bottom.
-4. **Then commit and push** — one commit that carries both the change and its version bump. Tag
-   `vX.Y.Z` if cutting a release.
+4. **Commit and push** — one commit that carries both the change and its version bump.
+5. **Tag the release**: create an annotated tag `vX.Y.Z` on that commit and push it
+   (`git tag -a vX.Y.Z -m "Release X.Y.Z" && git push origin vX.Y.Z`). Every version bump gets a
+   matching tag — the tag list must stay 1:1 with the released versions.
 
 ## Layout
 
@@ -218,7 +220,7 @@ Translation Agency/
 ├── README.md                     # GitHub landing page
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 0.3.0
+├── VERSION                       # 0.3.1
 ├── .gitignore
 ├── translation.config.json      # default settings (source/target langs, specialization, output, formats)
 ├── .claude/

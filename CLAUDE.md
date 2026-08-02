@@ -1,6 +1,6 @@
 # Translation Agency
 
-**Version 0.8.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
+**Version 0.8.1** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
 
 A reusable, project-agnostic translation system: ready-to-use **skills** and **agents** that
 translate **any project or set of files into any language**, with a domain **specialization** you
@@ -255,7 +255,7 @@ Translation Agency/
 ├── README.md                     # GitHub landing page
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 0.8.0
+├── VERSION                       # 0.8.1
 ├── .gitignore
 ├── translation.config.json      # default settings (source/target langs, specialization, output, formats)
 ├── translation.config.schema.json # JSON Schema for the config (editor autocomplete + typo-catching)

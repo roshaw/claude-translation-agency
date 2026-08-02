@@ -9,6 +9,20 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [0.8.1] — 2026-08-02
+
+### Fixed
+- **Strong-disclaimer trigger now covers the shipped `banking` module and no longer references
+  non-existent modules.** `/translate` Step 9 bolds a full-sentence disclaimer for high-stakes runs,
+  but the trigger list read `legal`, `medical`, or `financial` — neither `financial` (the real module
+  is `banking`) nor `medical` is a shipped specialization, so a `--domain banking` run (the actual
+  high-stakes financial domain) silently got only the plain disclaimer. The trigger is rewritten to
+  fire for any high-stakes / safety-critical domain — `legal`, `banking`, or `medical`, or any custom
+  module of comparable stakes (health, financial, legal, safety) — so `banking` is covered and the
+  check is robust rather than a brittle hard-coded list. Descriptive category prose elsewhere (the
+  "legal/medical/financial content" wording in disclaimers, `high-stakes` queries, and agent
+  examples) is unchanged — those describe kinds of content, not module names.
+
 ## [0.8.0] — 2026-08-02
 
 ### Added
@@ -188,7 +202,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.8.1...HEAD
+[0.8.1]: https://github.com/roshaw/claude-translation-agency/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.5.0...v0.6.0

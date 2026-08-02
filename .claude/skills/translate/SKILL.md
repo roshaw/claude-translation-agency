@@ -420,8 +420,9 @@ Always end the report with these two footer lines, verbatim:
    also appears as a commit trailer (Step 7).
 2. **Disclaimer** (point-of-use reminder, not optional): `⚠ AI-generated translation — review before
    publishing; human sign-off recommended for legal/medical/financial/safety-critical content.` If the
-   run's specialization is `legal`, `medical`, or `financial`, make it a full sentence and bold it,
-   since the stakes are higher.
+   run's specialization is a high-stakes / safety-critical domain — `legal`, `banking`, or `medical`,
+   or any custom module of comparable stakes (health, financial, legal, safety) — make it a full
+   sentence and bold it, since the stakes are higher.
 
 ## Reference
 

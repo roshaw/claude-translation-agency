@@ -53,6 +53,12 @@ Cover, in order:
    means reserve, not a physical book; 'Register' means sign up, not a cash register."* Free text.
    If they give a lot, offer to save it as a `translation-context.md` in the project and point the
    config `context` at that file; otherwise store the sentence inline in `context`.
+1b. **Do-not-translate rules** — *"Anything that looks like copy but should be left exactly as-is?
+   The panel already keeps numbers, code, URLs, and citations verbatim — this is for project-specific
+   pass-through only: e.g. 'colour/hex codes and size tokens like `42x2` are data, not copy', 'raw
+   handwritten-text field values are pass-through', 'keep placeholders `{name}`, `{id}`, `{remote}`
+   intact'. One plain rule per line; leave empty if none."* Free text → `doNotTranslate` array. Skip
+   for an unattended run (default `[]`).
 2. **Target languages** — *"Which languages should we translate INTO? Use language codes like `de`,
    `fr`, `pt-BR`, or WordPress form `de_DE`."* Default = detected set; free-text to add.
 3. **Source language** — *"What language is the original content in?"* Default = detected; only ask
@@ -82,7 +88,8 @@ Cover, in order:
 
 Write `translation.config.json` at the project root, using the repo template's shape and keeping the
 explanatory `$comment_*` keys. Fill: `sourceLang`, `targetLangs`, `specialization`, `context` (inline
-or the `translation-context.md` path), `research`, `queries`, `output.mode`, `include`/`exclude`
+or the `translation-context.md` path), `doNotTranslate` (the pass-through rules, or `[]`), `research`,
+`queries`, `output.mode`, `include`/`exclude`
 (always add the output dir + `translations/**` to `exclude`), `verifyCmd`/`buildCmd`, and the
 `wordpress` block only if gettext files were detected. Leave `projectPath` `""` (the config lives in
 the project it configures). Point `glossary` at `projects/<slug>/glossary.csv` (the research pass

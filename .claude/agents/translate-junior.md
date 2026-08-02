@@ -15,6 +15,8 @@ file: <message-catalog path, e.g. src/i18n/messages.de.ts or languages/mytheme-d
 keys_or_entries: [nav.calculator, footer.copyright, button.reset, ...]   # ONLY these
 native_name: <e.g. Deutsch>
 locale_meta: { locale: "de-DE", decimal: ",", group: "." }   # DATA — set, do not translate
+do_not_translate: [<manual pass-through rules — values that look like copy but are data (colour/size
+          tokens, raw user text, named placeholders); leave any covered value byte-identical>]
 specialization_path: specializations/<name>.md   # you skip its terminology block; you never translate terms
 verify_cmd: <optional gate, e.g. "npx tsc --noEmit"; empty for plain catalogs>
 ```
@@ -60,6 +62,7 @@ For each whitelisted entry:
 - **Preserve every placeholder / `printf` token identically** (`{count}`, `%s`, `%1$s`, `{{name}}`). A dropped or renamed token silently breaks rendering.
 - **Tone:** neutral, plain, product-UI — not legalese, not marketing fluff. Match the existing translations in this file's untouched entries.
 - **Brand discipline:** any brand/product name on the project's do-not-translate list stays the literal source string — never translated, transliterated, declined, or pluralized.
+- **Pass-through rules:** if a `do_not_translate` rule covers part of a value (a colour/size token like `42x2`, a raw user-entered string, a named placeholder), leave that part **byte-identical** — translate only the surrounding chrome, never the covered token.
 - **`.po` specifics:** fill the `msgstr` (or every `msgstr[n]` for a plural entry) from the `msgid`; keep `msgctxt`, `#:` source-ref comments, and header fields intact.
 
 ## STOP triggers — surface to Lead, do NOT translate

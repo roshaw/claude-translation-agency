@@ -34,6 +34,8 @@ target_langs: [bg, de, fr, ...]
 specialization: general | technical | marketing | legal | <custom>
 specialization_path: specializations/<name>.md   # read this for the C2 terminology rules
 context: <the product's purpose/audience/register — the sense-disambiguator; pass it to workers>
+do_not_translate: [<manual pass-through/verbatim rules from config.doNotTranslate + notes.md — strings
+          that look like copy but are data; treat as absolute, fold into C1/C3, pass to workers>]
 glossary_path: <the run glossary from the research pass>  # the C2 authority, above the specialization
 queries_mode: report | high-stakes | off          # how workers handle uncertainty (default report)
 queries_path: <projects/<slug>/queries-<date>.md> # the async review lane; consolidate, don't block
@@ -64,6 +66,7 @@ Read, in this order:
 1. **The `context`** — what the product is, its audience and register. It is the sense-disambiguator: it decides which meaning of a polysemous word is correct, so your C2 review must judge terminology against the product's actual sense, not a generic dictionary one.
 2. **The `glossary_path`** — the run glossary from the research pass. This is the **authority** for C2: a candidate that contradicts a glossary term of art is a C2 flag; a candidate that matches it is correct even if it's not what you'd have picked. It overrides the specialization on any term it defines.
 3. **The specialization module** at `specialization_path` (default `specializations/general.md`). Its "Terminology & non-negotiables" and "Verbatim / do-not-translate" sections back your C2 (terminology) and C3 (identity) checks where the glossary is silent.
+3b. **The `do_not_translate` rules** (from the brief). These are the operator's manual pass-through/verbatim instructions — strings that look like copy but are project-specific data (colour/size tokens, raw user-entered text, named placeholders, etc.). Treat each as an **absolute constraint**: a value covered by a rule must stay byte-identical to the source, so it is **exempt from C1** (never a "leftover" flag) and **enforced by C3** (any alteration of it is an identity violation). Keep them in mind for every batch and pass them to the workers.
 4. **The project conventions** at `project_conventions` if supplied (the target project's i18n contract, brand rules, tone) — source-of-truth language, placeholder syntax, file-format rules.
 5. **The failure-class memory encoded in this prompt** (the C1–C7 checklist + the sweeps). You do not need external memory files.
 
@@ -86,14 +89,15 @@ For each batch the skill suggests `Junior` or `Senior`. Sanity-check before spaw
 Agent({
   subagent_type: "translate-junior" | "translate-senior",
   prompt: <the batch brief — file list, source & target lang, specialization_path, context,
-           glossary_path, queries_mode, queries_path, verify_cmd, and for code the exact keys>
+           do_not_translate, glossary_path, queries_mode, queries_path, verify_cmd, and for code the exact keys>
 })
 ```
 
-Always pass `context`, `glossary_path`, `queries_mode`, and `queries_path` through to the Senior — the
-glossary and context are what keep terminology consistent across batches, and the queries path is
-where the Senior logs uncertainty asynchronously (it must not block). Junior batches don't need the
-glossary (chrome only) but still get `context`.
+Always pass `context`, `do_not_translate`, `glossary_path`, `queries_mode`, and `queries_path` through
+to the Senior — the glossary and context are what keep terminology consistent across batches, and the
+queries path is where the Senior logs uncertainty asynchronously (it must not block). Junior batches
+don't need the glossary (chrome only) but **do** get `context` and `do_not_translate` (the pass-through
+rules apply to chrome too — a colour token or placeholder in a button label must stay verbatim).
 
 The worker returns the diff it applied plus a one-line summary per file. If a `verify_cmd` was supplied, the worker ran it inside its spawn; if it failed the worker reports that and you skip review (the file isn't valid yet — surface to the skill).
 
@@ -109,6 +113,7 @@ For every translated string value: if `value === source_value` AND the value con
 
 **Exempt classes** (legitimately shared, not a leftover):
 - Brand / product names the project marks as do-not-translate (from `project_conventions`).
+- **Anything a `do_not_translate` rule covers** (colour/size tokens, raw user text, named placeholders, and any other pass-through the operator declared) — verbatim by instruction, never a leftover.
 - Currency codes (`EUR`, `USD`, `GBP`, …), pure numbers, dates, percentages.
 - Identifiers, code, file paths, URLs, enum values, format tokens.
 - Source-language citations / references the specialization marks verbatim.
@@ -126,8 +131,8 @@ For every value that carries a domain concept (per the specialization module + a
 
 ## C3 — Identity / verbatim tokens
 
-Every identifier the source carries that must survive translation unchanged — numbers, currency amounts, dates, code spans, file paths, URLs, enum/API values, and any citation/reference the specialization marks verbatim:
-- Confirm byte-identical with the source.
+Every identifier the source carries that must survive translation unchanged — numbers, currency amounts, dates, code spans, file paths, URLs, enum/API values, any citation/reference the specialization marks verbatim, **and anything a `do_not_translate` rule covers**:
+- Confirm byte-identical with the source. A value that a `do_not_translate` rule marks pass-through but the candidate has translated/reworded → flag as a C3 identity violation.
 - Any translation, paraphrase, or reformatting of these (including decimal-separator changes *inside* a citation, versus the locale's legitimate number-format field) → flag as a C3 identity violation.
 
 ## C4 — Placeholder & interpolation preservation

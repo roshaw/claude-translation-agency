@@ -25,6 +25,9 @@ the right SENSE of ambiguous words — e.g. "a hotel-booking app for travelers" 
 - <term> → <target rendering> (<source/why>)
 - Verbatim / never translate: <brand names, product terms, identifiers, citations>
 - Glossary: `glossary.csv` present? <yes/no> — <what it covers>
+- Pass-through rules: <free-form "leave this verbatim" instructions — colour/size tokens, raw user
+  text, named placeholders. The durable ones belong in `config.doNotTranslate`; items listed here
+  are merged into the run's do-not-translate list too.>
 
 ## Framing / tone
 - <register, formality (formal vs informal "you"), brand voice notes, domain framing traps>

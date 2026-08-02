@@ -53,6 +53,7 @@ Configuration is resolved in this order (later wins):
   "targetLangs": ["de", "fr", "es"],
   "specialization": "general",
   "glossary": "glossary.csv",
+  "doNotTranslate": ["Colour/hex codes and size tokens like 42x2 are pass-through data — leave verbatim.", "Keep placeholders {name}, {id}, {remote} intact."],
   "include": ["src/i18n/**", "content/**", "languages/**"],
   "exclude": ["**/node_modules/**", "**/*.min.*"],
   "verifyCmd": "npx tsc --noEmit",
@@ -115,7 +116,10 @@ single command with quoted content, not a chain.
    `path` matches this project root. If found, read its `projects/<slug>/notes.md` — the terminology
    decisions, do-not-translate list, format quirks, and "what done means here" are run context; pass
    the relevant parts to the Lead in its brief (as `project_conventions` alongside any in-project
-   contract). If there's **no** registry entry, note it — you'll offer to register the project at the
+   contract). **Collect the do-not-translate rules** from `config.doNotTranslate` plus any
+   do-not-translate items in `notes.md`, and pass the merged list to the Lead as `do_not_translate`
+   (the brief field in Step 3) — these are the manual pass-through/verbatim instructions the panel
+   enforces. If there's **no** registry entry, note it — you'll offer to register the project at the
    end (Step 9), and continue this run using config + flags. (Setup via `/translate-init` is the
    normal way to register, but a `/translate` run on an unregistered project still works.)
 2. **If the root is a git repo AND output mode is `inplace` (the default) or `catalog`:** these
@@ -272,6 +276,8 @@ specialization: <name>
 specialization_path: specializations/<name>.md
 context: <config.context — inline text or the contents of translation-context.md; the product's
           purpose/audience/register, so the panel picks the right sense of each word>
+do_not_translate: [<config.doNotTranslate rules, verbatim — the manual pass-through/verbatim
+          instructions the panel must treat as absolute and add to the C1/C3 exempt list>]
 glossary_path: projects/<slug>/glossary.csv    # the research pass's output (or config.glossary)
 queries_mode: report | high-stakes | off       # from config.queries (default report)
 queries_path: projects/<slug>/queries-<date>.md

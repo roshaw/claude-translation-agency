@@ -13,6 +13,9 @@
   "$comment_context": "What this project IS — its purpose, audience, register/brand voice, and any domain notes. This is what lets the translator pick the right sense of a word (e.g. 'Book' = reserve vs. the object). Put a short description inline here, OR a path to a translation-context.md file. The more specific, the better the terminology.",
   "context": "",
 
+  "$comment_doNotTranslate": "MANUAL pass-through / verbatim rules — free-form instructions for the panel about strings that LOOK like copy but are data and must be left byte-identical (in addition to the always-verbatim identity tokens like numbers, code, and URLs). One plain-language rule per array item; the panel treats each as an absolute constraint and adds it to the C1/C3 verbatim exempt list, so a matching value is never 'translated' and never flagged as a leftover. Use for project-specific things a generic translator can't know. Examples: 'Colour/hex codes and size tokens like 42x2 are pass-through data, not copy — leave verbatim.', 'Raw handwritten-text field values are pass-through — do not translate.', 'Keep placeholders {name}, {id}, {remote} intact and identical.' For a single fixed TERM, prefer a glossary row with lang=* instead; use this for patterns/categories/instructions. Leave [] if none.",
+  "doNotTranslate": [],
+
   "$comment_research": "Terminology-research pass (the translate-researcher agent) that builds a per-language glossary before translating. 'first-run' (default) researches the first time a project/language is translated, then reuses the saved glossary; 'always' re-researches every run; 'off' never runs it. Force a refresh any run with the --research flag.",
   "research": "first-run",
 

@@ -31,6 +31,9 @@ source_files: [<paths to READ the source from — in "tree"/"inplace" mode these
 specialization_path: specializations/<name>.md
 context: <the product's purpose/audience/register — what it IS. Use it to pick the right SENSE of a
           word (e.g. "Book" = reserve vs. the object) before translating.>
+do_not_translate: [<manual pass-through/verbatim rules — strings that look like copy but are data
+          (colour/size tokens, raw user text, named placeholders, …). Leave any covered value
+          byte-identical to the source; never translate or reword it.>]
 glossary_path: <the run glossary (from the research pass) — the authority on term-of-art choices;
                 overrides the specialization on any term it defines>
 queries_mode: report | high-stakes | off      # how to handle uncertainty (default report)
@@ -55,6 +58,7 @@ terminology and don't block the run.
    term of art to use per language and which sense a word takes; follow it over your own instinct and
    over the specialization on any term it defines.
 3. **The specialization module** at `specialization_path` (default `specializations/general.md`) — its terminology, verbatim rules, tone, and escalation triggers govern this pass where the glossary is silent.
+3b. **The `do_not_translate` rules** (from the brief) — the operator's manual pass-through list. Any value a rule covers (a colour/size token, a raw user-entered string, a named placeholder, etc.) stays **byte-identical to the source** — treat it exactly like an identity token (principle 3): translate around it, never it. Note in your report anything you deliberately left verbatim under a rule.
 4. **The project conventions** at `project_conventions` if supplied — source-of-truth language, placeholder syntax, brand/do-not-translate list, file-format rules.
 5. **The source file(s)** — read from `source_files` (the source language is your contract). In `tree`/`inplace` mode this path differs from the file you write.
 6. **The target file(s)** in `files` — the paths you edit or create. In `tree` mode these are pre-made source-language copies under `translations/<lang>/…`; overwrite their strings with the translation, don't create a second copy.
@@ -173,6 +177,7 @@ Lead how many queries you logged.
 - [ ] Every in-scope string has a real translation in the target language — zero source-language leftovers.
 - [ ] Every interpolation token from the source is present and identically named.
 - [ ] Every identity token (number, date, currency, code, path, URL, citation) is byte-identical to the source.
+- [ ] Every value covered by a `do_not_translate` rule is left byte-identical to the source (pass-through, not translated).
 - [ ] Markup and block structure are parallel to the source; only values were translated.
 - [ ] Terminology is the target language's correct term of art per the specialization + glossary; framing/stance preserved.
 - [ ] Tone matches the source's register; no machine-translation stiffness.

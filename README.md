@@ -2,7 +2,7 @@
 
 > Ready-to-use Claude skills and agents that translate **any project or set of files into any language**, with a domain **specialization** you choose per run.
 
-[![Version](https://img.shields.io/badge/version-0.3.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 Translation Agency is a portable localization pipeline for [Claude Code](https://claude.com/claude-code) / Cowork. It was extracted and generalized from a production legal-fee-calculator localization system, whose three-tier "translator panel" and adversarial-QA design proved out over many real passes — then had all its project-specific hardwiring lifted out into settings so the same machinery works on a WordPress plugin, a React app's i18n, a folder of Markdown docs, or a batch of JSON files.
@@ -192,6 +192,11 @@ All fields are optional (each falls back to a default); CLI flags override the f
   "targetLangs": ["de", "fr", "es"],
   "specialization": "general",
   "context": "One or two sentences on what the product is and who it's for.",
+  "doNotTranslate": [
+    "Colour/hex codes and size tokens like 42x2 are pass-through data, not copy — leave verbatim.",
+    "Raw handwritten-text field values are pass-through — do not translate.",
+    "Keep placeholders {name}, {id}, {remote} intact and identical."
+  ],
   "research": "first-run",
   "queries": "report",
   "glossary": "",
@@ -205,11 +210,16 @@ All fields are optional (each falls back to a default); CLI flags override the f
 ```
 
 `context` is the highest-leverage field — it's what lets the translator pick the right sense of a
-word. `research` controls the terminology-glossary pass (`first-run` builds it once per language then
-reuses it; `always` re-runs it; `off` disables). `queries` controls uncertainty handling (`report`
-logs questions to an async file without interrupting you; `high-stakes` also asks interactively for a
-few legal/medical/financial terms; `off` best-guesses silently). See
-[Context, research & questions](#context-research--questions).
+word. `doNotTranslate` is a list of **manual pass-through / verbatim rules**: plain-language
+instructions for strings that *look* like copy but are project-specific data — colour/size tokens,
+raw user-entered text, named placeholders — that must stay byte-identical. The panel treats each as
+an absolute constraint, adding covered values to its verbatim exempt list so they're never translated
+and never flagged as leftovers. (For a single fixed *term*, a glossary row with `lang=*` is the
+tighter tool; use `doNotTranslate` for patterns and instructions.) `research` controls the
+terminology-glossary pass (`first-run` builds it once per language then reuses it; `always` re-runs
+it; `off` disables). `queries` controls uncertainty handling (`report` logs questions to an async file
+without interrupting you; `high-stakes` also asks interactively for a few legal/medical/financial
+terms; `off` best-guesses silently). See [Context, research & questions](#context-research--questions).
 
 ## Context, research & questions
 
@@ -244,7 +254,7 @@ translation-agency/
 ├── README.md                     # this file
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 0.3.1
+├── VERSION                       # 0.4.0
 ├── translation.config.json       # default settings
 ├── .claude/
 │   ├── agents/                   # translate-lead, -senior, -junior, -researcher
@@ -255,7 +265,7 @@ translation-agency/
 
 ## Versioning
 
-This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **0.3.1**.
+This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **0.4.0**.
 
 ## Contributing
 

@@ -1,6 +1,6 @@
 # Translation Agency
 
-**Version 0.3.1** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
+**Version 0.4.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
 
 A reusable, project-agnostic translation system: ready-to-use **skills** and **agents** that
 translate **any project or set of files into any language**, with a domain **specialization** you
@@ -171,10 +171,21 @@ omit it and pass values as CLI flags with `--path`. So to translate `C:\Projects
 belongs at `C:\Projects\MyApp\translation.config.json`.
 
 All fields optional. Key fields: `projectPath`, `sourceLang`, `targetLangs`, `specialization`,
-`context` (the product's purpose — inline or a `translation-context.md` path), `research`
-(`first-run`|`always`|`off`), `queries` (`report`|`high-stakes`|`off`), `glossary`, `include`/`exclude`,
-`output.mode`, `verifyCmd`/`buildCmd`, and a `wordpress` block (`textdomain`, `makeMo`, `makeJson`).
-Command-line flags override the config for a single run.
+`context` (the product's purpose — inline or a `translation-context.md` path), `doNotTranslate`,
+`research` (`first-run`|`always`|`off`), `queries` (`report`|`high-stakes`|`off`), `glossary`,
+`include`/`exclude`, `output.mode`, `verifyCmd`/`buildCmd`, and a `wordpress` block (`textdomain`,
+`makeMo`, `makeJson`). Command-line flags override the config for a single run.
+
+`doNotTranslate` is a list of **manual pass-through / verbatim rules** — free-form, plain-language
+instructions for strings that *look* like copy but are project-specific data and must stay
+byte-identical (beyond the always-verbatim identity tokens like numbers, code, and URLs). The panel
+treats each rule as absolute: a covered value is added to the C1/C3 verbatim exempt list, so it's
+never "translated" and never flagged as a source-language leftover. Use it for what a generic
+translator can't know — e.g. *"colour/hex codes and size tokens like `42x2` are pass-through data,
+not copy"*, *"raw handwritten-text field values are pass-through"*, *"keep placeholders `{name}`,
+`{id}`, `{remote}` intact"*. For a single fixed **term**, prefer a glossary row with `lang=*`; use
+`doNotTranslate` for patterns, categories, and instructions. The skill also merges in any
+do-not-translate items recorded in the project's `notes.md`.
 
 ## Guarantees the panel enforces (every run, every language)
 
@@ -220,7 +231,7 @@ Translation Agency/
 ├── README.md                     # GitHub landing page
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 0.3.1
+├── VERSION                       # 0.4.0
 ├── .gitignore
 ├── translation.config.json      # default settings (source/target langs, specialization, output, formats)
 ├── .claude/

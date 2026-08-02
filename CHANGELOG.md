@@ -9,6 +9,20 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-08-02
+
+### Added
+- **`doNotTranslate` config option**: a list of manual pass-through / verbatim
+  rules — free-form, plain-language instructions for strings that look like copy
+  but are project-specific data (colour/size tokens like `42x2`, raw user-entered
+  text, named placeholders) and must stay byte-identical. The panel treats each
+  rule as absolute, adding covered values to the C1/C3 verbatim exempt list so
+  they are never translated and never flagged as source-language leftovers. Wired
+  end-to-end: `translation.config.json` → `/translate` brief (`do_not_translate`,
+  merged with any `notes.md` items) → Lead C1/C3 checks → Senior & Junior workers.
+  `/translate-init` now asks for these rules during setup. For a single fixed term,
+  a glossary row with `lang=*` remains the tighter tool.
+
 ## [0.3.1] — 2026-08-02
 
 ### Changed
@@ -97,7 +111,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/roshaw/claude-translation-agency/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.1.0...v0.2.0

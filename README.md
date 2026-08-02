@@ -2,7 +2,7 @@
 
 > Ready-to-use Claude skills and agents that translate **any project or set of files into any language**, with a domain **specialization** you choose per run.
 
-[![Version](https://img.shields.io/badge/version-0.7.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.8.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 Translation Agency is a portable localization pipeline for [Claude Code](https://claude.com/claude-code) / Cowork. It was extracted and generalized from a production legal-fee-calculator localization system, whose three-tier "translator panel" and adversarial-QA design proved out over many real passes — then had all its project-specific hardwiring lifted out into settings so the same machinery works on a WordPress plugin, a React app's i18n, a folder of Markdown docs, or a batch of JSON files.
@@ -190,6 +190,13 @@ For example, to translate an app at `C:\Projects\MyApp`, the file belongs at `C:
 
 You don't have to write it by hand — run **`/translate-init --path <project>`**, a guided step-by-step wizard that explains each option, captures the project's purpose/context, and writes the file (and registers the project) for you.
 
+**Schema-validated.** The config is described by a JSON Schema
+([`translation.config.schema.json`](translation.config.schema.json), draft 2020-12), and the template
+points at it via a `$schema` key, so editors give you **autocomplete + inline docs** on every field
+and **catch typos** — a bad value like `"research": "firstrun"` (should be `first-run`) or an
+unknown key is flagged as you type instead of failing silently at run time. The pointer uses the raw
+GitHub URL, so it keeps working from any project you copy the file into.
+
 All fields are optional (each falls back to a default); CLI flags override the file for a single run:
 
 ```json
@@ -271,8 +278,9 @@ translation-agency/
 ├── README.md                     # this file
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 0.7.0
+├── VERSION                       # 0.8.0
 ├── translation.config.json       # default settings
+├── translation.config.schema.json # JSON Schema for the config (editor autocomplete + validation)
 ├── .claude/
 │   ├── agents/                   # translate-lead, -senior, -junior, -researcher
 │   └── skills/                   # translate-init/, translate/, translate-add-locale/, translate-audit/
@@ -282,7 +290,7 @@ translation-agency/
 
 ## Versioning
 
-This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **0.7.0**.
+This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **0.8.0**.
 
 ## Contributing
 

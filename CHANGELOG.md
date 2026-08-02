@@ -9,6 +9,21 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-08-02
+
+### Added
+- **JSON Schema for `translation.config.json`** (`translation.config.schema.json`, draft 2020-12).
+  The config was hand-edited with no validation, so a typo like `"research": "firstrun"` failed
+  silently. The schema defines every current field (all optional) with correct types and enums —
+  `research`, `queries`, and `output.mode` are enum-checked; `specialization` stays open-typed
+  because custom `specializations/<name>.md` modules are valid values — and sets
+  `additionalProperties: false` (with a `^\$comment` `patternProperties` allowance plus `$schema`)
+  so unknown keys are caught while the annotated template still validates. Each field carries a
+  one-line description for editor hovers. The template now points at the schema via a `$schema` key
+  using the raw-GitHub URL, so editors get **autocomplete + typo-catching** from any project the file
+  is copied into. Documented in both README and CLAUDE.md "Configuration". Config behavior is
+  unchanged — this is additive editor/validation tooling only.
+
 ## [0.7.0] — 2026-08-02
 
 ### Added
@@ -173,7 +188,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.4.1...v0.5.0

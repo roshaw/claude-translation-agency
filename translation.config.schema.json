@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/roshaw/claude-translation-agency/main/translation.config.schema.json",
+  "title": "Translation Agency config",
+  "description": "Schema for translation.config.json — the per-project settings file for the Translation Agency toolkit. Lives at the root of the project being translated (not in the toolkit folder). All fields are optional; command-line flags override the file for a single run. See CLAUDE.md and README.md 'Configuration'.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Pointer to this JSON Schema, giving editors autocomplete and validation. Keep it as the raw GitHub URL so it resolves from any project the file is copied into."
+    },
+    "sourceLang": {
+      "type": "string",
+      "description": "Language code of the source files (the language you are translating FROM), e.g. 'en'. If omitted, the skill detects it."
+    },
+    "targetLangs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Language codes to translate INTO, e.g. ['de', 'fr', 'es']. Locale forms like 'pt-BR' or 'de_DE' are fine."
+    },
+    "specialization": {
+      "type": "string",
+      "description": "The domain profile the translator panel loads for terminology and framing. Built-ins: general (default) | technical | marketing | legal | banking. Not enum-restricted — a custom specializations/<name>.md module is also a valid value. Override per run with /translate --domain <name>."
+    },
+    "glossary": {
+      "type": "string",
+      "description": "Optional path to a project glossary CSV (source,lang,term,context,confidence,source,notes). Overrides the specialization on any term it defines; the research pass writes/updates this file."
+    },
+    "context": {
+      "type": "string",
+      "description": "What this project IS — purpose, audience, register/brand voice, domain notes. Lets the translator pick the right sense of a word. A short description inline, OR a path to a translation-context.md file."
+    },
+    "doNotTranslate": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Manual pass-through / verbatim rules — one plain-language instruction per item for strings that look like copy but are project-specific data and must stay byte-identical. The panel treats each as absolute and adds covered values to the C1/C3 verbatim exempt list. Use for patterns/categories; for a single fixed term prefer a glossary row with lang=*."
+    },
+    "research": {
+      "type": "string",
+      "enum": ["first-run", "always", "off"],
+      "description": "Terminology-research pass (translate-researcher) that builds a per-language glossary before translating. 'first-run' (default) researches once per project/language then reuses the glossary; 'always' re-researches every run; 'off' never runs it. Force a refresh any run with --research."
+    },
+    "queries": {
+      "type": "string",
+      "enum": ["report", "high-stakes", "off"],
+      "description": "How uncertain strings are handled. 'report' (default) best-guesses and logs each uncertainty to projects/<slug>/queries-<date>.md without interrupting you; 'high-stakes' also asks interactively for a few legal/medical/financial terms; 'off' best-guesses and writes no queries file."
+    },
+    "projectPath": {
+      "type": "string",
+      "description": "Absolute path to the project/files to translate (e.g. C:/Users/you/Projects/MyApp). Empty = the current directory. Override per run with /translate --path <path>."
+    },
+    "include": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Glob list of translatable files, relative to projectPath (e.g. ['src/i18n/**', 'content/**'])."
+    },
+    "exclude": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Glob list of files to skip, relative to projectPath (e.g. ['**/node_modules/**', 'translations/**'])."
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Where translated files are written.",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["inplace", "tree", "catalog"],
+          "description": "'inplace' (default) writes each translation as a sibling next to its source, swapping/appending the language code; 'tree' copies every file into <projectPath>/<dir>/<lang>/ and translates the copies; 'catalog' edits existing per-language files in place (messages.<lang>.ts, de.json, .po)."
+        },
+        "dir": {
+          "type": "string",
+          "description": "Output directory name used by 'tree' mode only (default 'translations')."
+        }
+      }
+    },
+    "verifyCmd": {
+      "type": "string",
+      "description": "Cheap per-batch check (type/lint) run after each batch. Leave empty for plain document sets."
+    },
+    "buildCmd": {
+      "type": "string",
+      "description": "Build/verify command run once at the end of the run. Leave empty for plain document sets."
+    },
+    "creditInCommit": {
+      "type": "boolean",
+      "description": "Optional attribution in git history. Default false. When true, and only when the run actually commits (inplace/catalog mode in a git repo), the translation commit gets a 'Translated-with: Translation Agency <version> (<repo URL>)' trailer — nothing is ever written into the translated files. The run report always credits the tool regardless."
+    },
+    "wordpress": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Options for WordPress / gettext projects.",
+      "properties": {
+        "textdomain": {
+          "type": "string",
+          "description": "The plugin/theme text domain."
+        },
+        "makeJson": {
+          "type": "boolean",
+          "description": "Compile the Jed-format WP JSON artifacts from the translated .po files (needs WP-CLI or gettext tools). Default false."
+        },
+        "makeMo": {
+          "type": "boolean",
+          "description": "Compile .mo artifacts from the translated .po files (needs WP-CLI or gettext tools). Default false."
+        }
+      }
+    }
+  },
+  "patternProperties": {
+    "^\\$comment": {
+      "type": "string",
+      "description": "Inline documentation key ($comment, $comment_specialization, …). Ignored by the toolkit; permitted so the annotated template validates."
+    }
+  }
+}

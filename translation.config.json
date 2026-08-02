@@ -1,4 +1,6 @@
 {
+  "$schema": "https://raw.githubusercontent.com/roshaw/claude-translation-agency/main/translation.config.schema.json",
+
   "$comment": "PLACEMENT: put this file at the ROOT of the project you are translating (the folder holding the source files, where the translations/ output is written) — NOT in the Translation Agency toolkit folder. This copy is a template; copy it into your target project and edit it there. All fields optional; command-line flags override these. See CLAUDE.md and specializations/README.md.",
 
   "sourceLang": "en",

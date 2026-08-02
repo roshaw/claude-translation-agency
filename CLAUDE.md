@@ -1,6 +1,6 @@
 # Translation Agency
 
-**Version 0.7.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
+**Version 0.8.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
 
 A reusable, project-agnostic translation system: ready-to-use **skills** and **agents** that
 translate **any project or set of files into any language**, with a domain **specialization** you
@@ -182,6 +182,12 @@ folder. The copy in this repo is a template: copy it into the target project and
 omit it and pass values as CLI flags with `--path`. So to translate `C:\Projects\MyApp`, the file
 belongs at `C:\Projects\MyApp\translation.config.json`.
 
+The config is **schema-validated**: `translation.config.schema.json` (JSON Schema draft 2020-12) at
+the repo root describes every field, and the template references it via a `$schema` key (raw-GitHub
+URL, so it resolves from any target project). Editors use it for autocomplete + inline field docs and
+to catch typos (e.g. `"research": "firstrun"` or an unknown key) before a run. Keep the schema in
+sync when you add or change a config field.
+
 All fields optional. Key fields: `projectPath`, `sourceLang`, `targetLangs`, `specialization`,
 `context` (the product's purpose — inline or a `translation-context.md` path), `doNotTranslate`,
 `research` (`first-run`|`always`|`off`), `queries` (`report`|`high-stakes`|`off`), `glossary`,
@@ -249,9 +255,10 @@ Translation Agency/
 ├── README.md                     # GitHub landing page
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 0.7.0
+├── VERSION                       # 0.8.0
 ├── .gitignore
 ├── translation.config.json      # default settings (source/target langs, specialization, output, formats)
+├── translation.config.schema.json # JSON Schema for the config (editor autocomplete + typo-catching)
 ├── .claude/
 │   ├── agents/
 │   │   ├── translate-lead.md       # Opus — orchestrator + adversarial QA (C1–C7)

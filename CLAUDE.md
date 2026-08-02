@@ -1,6 +1,6 @@
 # Translation Agency
 
-**Version 0.5.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
+**Version 0.6.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
 
 A reusable, project-agnostic translation system: ready-to-use **skills** and **agents** that
 translate **any project or set of files into any language**, with a domain **specialization** you
@@ -54,6 +54,13 @@ terminology research" below.
 - **`/translate-add-locale`** — `.claude/skills/translate-add-locale/SKILL.md`. Scaffolds a brand-new UI language into a
   codebase (registry, catalog clone, routes, switcher) so the build goes green with placeholders,
   then hands off to `/translate` to fill it.
+- **`/translate-audit`** — `.claude/skills/translate-audit/SKILL.md`. A **read-only coverage audit**
+  across every existing language. Builds the union of all keys/strings/pages present in any locale
+  (including the source), then reports, per language, what's missing, which languages *do* have it,
+  and how to fix it. Catches four gap classes: missing-in-target, **missing-in-source** (a key that
+  exists in translations but not the source — which `/translate` can't auto-fill), empty values, and
+  untranslated leftovers; plus content-tree file coverage and stale `source_hash`. Changes nothing —
+  it prints a coverage matrix + fix plan and points at `/translate`.
 
 ## The specialization setting (choose the domain, or leave it default)
 
@@ -238,7 +245,7 @@ Translation Agency/
 ├── README.md                     # GitHub landing page
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 0.5.0
+├── VERSION                       # 0.6.0
 ├── .gitignore
 ├── translation.config.json      # default settings (source/target langs, specialization, output, formats)
 ├── .claude/
@@ -250,7 +257,8 @@ Translation Agency/
 │   └── skills/
 │       ├── translate-init/SKILL.md # generate a project's translation.config.json
 │       ├── translate/SKILL.md    # the main translation pass
-│       └── translate-add-locale/SKILL.md   # scaffold a new UI language, then hand off
+│       ├── translate-add-locale/SKILL.md   # scaffold a new UI language, then hand off
+│       └── translate-audit/SKILL.md        # read-only coverage audit (missing translations per language)
 ├── specializations/
 │   ├── README.md                 # how specializations work + how to add one
 │   ├── general.md                # default

@@ -9,6 +9,21 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-08-02
+
+### Added
+- **`/translate-audit` skill** (`.claude/skills/translate-audit/SKILL.md`): a
+  read-only coverage audit across every existing language. It builds the union of
+  all keys/strings/pages present in any locale (including the source) and reports,
+  per language, what is missing, which languages *do* have it, and how to fix it —
+  a coverage matrix + fix plan, changing nothing. Catches four gap classes:
+  missing-in-target, **missing-in-source** (a key present in translations but not
+  the source, which `/translate` can't auto-fill), empty values, and untranslated
+  leftovers; plus content-tree file coverage and stale `source_hash`. Works on
+  message catalogs, gettext (`.po`/`.pot`), and mirrored content trees. Points at
+  `/translate` to close the gaps. Cross-referenced from `/translate` and
+  `/translate-add-locale`.
+
 ## [0.5.0] — 2026-08-02
 
 ### Added
@@ -136,7 +151,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/roshaw/claude-translation-agency/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.3.1...v0.4.0

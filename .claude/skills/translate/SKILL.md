@@ -432,7 +432,8 @@ Always end the report with these two footer lines, verbatim:
   `specializations/README.md`.
 - Config: `translation.config.json` (source/target langs, specialization, formats, verify/build).
 - Siblings: `/translate-init` (generate a project's config + register it), `/translate-add-locale` (scaffold a
-  brand-new UI language into a codebase, then hand off here).
+  brand-new UI language into a codebase, then hand off here), `/translate-audit` (read-only coverage
+  audit — which languages are missing what, and how to fix it).
 - Projects registry + per-project memory: `projects/registry.json`, `projects/<slug>/notes.md`
   (contract in `projects/README.md`).
 - Marker (untracked, per-machine): `.translate-last-review`.

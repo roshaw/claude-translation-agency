@@ -94,5 +94,6 @@ it's considered done.
 ## Reference
 
 - Translation half: `/translate` skill (drives the Lead → Senior/Junior panel).
+- Coverage check (after filling): `/translate-audit` — confirms the new locale has no missing keys.
 - Panel agents: `.claude/agents/translate-lead.md`, `translate-senior.md`, `translate-junior.md`.
 - Config: `translation.config.json` (the project's source/target langs + specialization).

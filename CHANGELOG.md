@@ -9,6 +9,29 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-08-02
+
+### Added
+- **`formality` config option — register / T–V distinction as a first-class, enforced setting.**
+  Many languages force a formal/informal way of addressing the reader (German du/Sie, French tu/vous,
+  Spanish tú/usted, Japanese politeness levels) that the toolkit could previously only express
+  implicitly through `context`, making register drift a recurring rework class. `formality` makes the
+  choice explicit and enforced. It accepts **either** a single string — `formal` | `informal` | `auto`
+  — applied to every target language, **or** an object for per-language control
+  (`{ "default": "formal", "de": "informal", "ja": "formal" }`), where unlisted languages fall back to
+  `default`, else `auto`. Default (field absent, or `auto`) uses each language's conventional register
+  for the product/context — **exactly today's behavior, so the change is non-breaking**; where a
+  language has no T–V distinction (e.g. English) `formal`/`informal` is read as overall tone, never a
+  forced construct. Resolution (later wins): `--formality <formal|informal|auto>` flag (global for the
+  run) → `config.formality` (per-language object lookup, else its `default`, else `auto`) → `auto`.
+  Wired end-to-end: `translation.config.json` template + JSON Schema (a `oneOf` of the enum string or
+  an object of enum values) → `/translate` `--formality` flag and per-language resolution in the Lead
+  brief → Lead (Step 0 re-orient + **C6** register check flagging any candidate whose register
+  contradicts the request or is inconsistent within a run) → Senior (principle 7 + a quality-gate line)
+  and Junior (chrome matches the requested register, e.g. imperative *Anmelden* vs. polite *Melden Sie
+  sich an*). `/translate-init` now asks for the preference during setup (once globally or per language).
+  Documented in README and CLAUDE.md "Configuration".
+
 ## [0.8.1] — 2026-08-02
 
 ### Fixed
@@ -202,7 +225,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.8.1...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.8.1...v0.9.0
 [0.8.1]: https://github.com/roshaw/claude-translation-agency/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.6.0...v0.7.0

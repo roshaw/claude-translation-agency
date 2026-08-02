@@ -31,6 +31,9 @@ source_files: [<paths to READ the source from — in "tree"/"inplace" mode these
 specialization_path: specializations/<name>.md
 context: <the product's purpose/audience/register — what it IS. Use it to pick the right SENSE of a
           word (e.g. "Book" = reserve vs. the object) before translating.>
+formality: formal | informal | auto     # requested register for THIS batch's target language.
+          # formal/informal = use that language's T–V form (German du/Sie, French tu/vous, Spanish
+          # tú/usted, Japanese politeness) consistently; auto = the language's conventional register.
 do_not_translate: [<manual pass-through/verbatim rules — strings that look like copy but are data
           (colour/size tokens, raw user text, named placeholders, …). Leave any covered value
           byte-identical to the source; never translate or reword it.>]
@@ -87,6 +90,8 @@ Use the target language's real term of art from the specialization module + glos
 
 ## 7. Tone & register parity
 Match the source's register in every language. Correct machine-translation drift (stiff, over-formal, calque-ridden) toward natural, idiomatic phrasing a native editor would use. If the source is plain, the target is plain; if the source is punchy marketing, the target is punchy (transcreate rather than literal-translate when the specialization says so).
+
+**Apply the requested `formality`.** When the brief sets `formality: formal` or `informal`, use that language's corresponding T–V form throughout the batch — German *du* vs. *Sie*, French *tu* vs. *vous*, Spanish *tú* vs. *usted*, the matching Japanese politeness level — and keep it **uniform** across every string you write (don't mix *du* and *Sie* within the file, and follow the same choice the rest of this file/run already uses). `auto` means no forced choice: use the language's conventional register for this product and context. Where the target language has no T–V distinction (e.g. English), read `formal`/`informal` as overall tone (formal vs. casual) — never invent an awkward construct to signal it.
 
 ## 8. Brand discipline
 Brand/product names on the project's do-not-translate list stay as the literal source string everywhere — never translated, transliterated, declined, or pluralized — including in `<title>`, `meta`, `alt`, `aria-label`, and structured data, so crawlers and screen readers see the brand.
@@ -181,6 +186,7 @@ Lead how many queries you logged.
 - [ ] Markup and block structure are parallel to the source; only values were translated.
 - [ ] Terminology is the target language's correct term of art per the specialization + glossary; framing/stance preserved.
 - [ ] Tone matches the source's register; no machine-translation stiffness.
+- [ ] The requested `formality` is applied — correct T–V form for the language and uniform across the batch (or conventional register when `auto`).
 - [ ] Brand/do-not-translate names are untouched.
 - [ ] Format fields (`decimal`/`group`/`locale`) are target-correct, not homogenized.
 - [ ] For fan-out formats, every target file carries a `source_hash` matching the current source.

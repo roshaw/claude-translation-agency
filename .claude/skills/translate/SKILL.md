@@ -32,6 +32,7 @@ Lead handles all worker spawns and reviews. The single final build/verify runs h
 /translate --to <langs>            # e.g. --to de,fr,pt-BR  (overrides configured targets for this run)
 /translate --from <lang>           # override the detected/configured source language
 /translate --domain <name>         # specialization: general | technical | marketing | legal | <custom> (default from config, else general)
+/translate --formality <f>         # register for the whole run: formal | informal | auto (overrides config.formality; default auto)
 /translate --files <glob|paths>    # translate an explicit set (a folder, a glob, named files)
 /translate --out <mode>            # output layout: inplace (default) | tree | catalog  (see Step 0.5)
 /translate --full                  # translate the ENTIRE translatable surface, not just the diff
@@ -52,6 +53,7 @@ Configuration is resolved in this order (later wins):
   "sourceLang": "en",
   "targetLangs": ["de", "fr", "es"],
   "specialization": "general",
+  "formality": "auto",
   "glossary": "glossary.csv",
   "doNotTranslate": ["Colour/hex codes and size tokens like 42x2 are pass-through data — leave verbatim.", "Keep placeholders {name}, {id}, {remote} intact."],
   "include": ["src/i18n/**", "content/**", "languages/**"],
@@ -278,6 +280,7 @@ specialization: <name>
 specialization_path: specializations/<name>.md
 context: <config.context — inline text or the contents of translation-context.md; the product's
           purpose/audience/register, so the panel picks the right sense of each word>
+formality: { <lang>: formal | informal | auto, ... }   # resolved PER target language (see below)
 do_not_translate: [<config.doNotTranslate rules, verbatim — the manual pass-through/verbatim
           instructions the panel must treat as absolute and add to the C1/C3 exempt list>]
 glossary_path: projects/<slug>/glossary.csv    # the research pass's output (or config.glossary)
@@ -295,6 +298,16 @@ batch_list:
   - ...
 report_path: .translate-report-<run_id>.json
 ```
+
+**Resolve `formality` per target language before building the brief.** For each target language,
+pick its register in this order (later wins): the `--formality <formal|informal|auto>` flag (global —
+applies to every language this run) → `config.formality` (if it's a string, that value for every
+language; if it's an object, `config.formality[<lang>]`, else `config.formality.default`, else
+`auto`) → `auto`. Pass the result as the `formality` map in the brief (one entry per target
+language). `auto` — the default and the meaning when the field is absent — tells the panel to use the
+language's conventional register for this product/context (today's behavior), so an absent/`auto`
+setting changes nothing. Where a language has no T–V distinction (e.g. English), `formal`/`informal`
+is interpreted as overall tone, never a forced construct.
 
 (In `tree`/`inplace` mode you copy each source file to its **renamed** target path **before** spawning
 the Lead, so `files` already exist as source-language copies for the workers to overwrite. In

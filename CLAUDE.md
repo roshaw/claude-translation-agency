@@ -1,6 +1,6 @@
 # Translation Agency
 
-**Version 0.8.1** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
+**Version 0.9.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
 
 A reusable, project-agnostic translation system: ready-to-use **skills** and **agents** that
 translate **any project or set of files into any language**, with a domain **specialization** you
@@ -189,10 +189,21 @@ to catch typos (e.g. `"research": "firstrun"` or an unknown key) before a run. K
 sync when you add or change a config field.
 
 All fields optional. Key fields: `projectPath`, `sourceLang`, `targetLangs`, `specialization`,
-`context` (the product's purpose — inline or a `translation-context.md` path), `doNotTranslate`,
-`research` (`first-run`|`always`|`off`), `queries` (`report`|`high-stakes`|`off`), `glossary`,
-`include`/`exclude`, `output.mode`, `verifyCmd`/`buildCmd`, `creditInCommit`, and a `wordpress` block
-(`textdomain`, `makeMo`, `makeJson`). Command-line flags override the config for a single run.
+`context` (the product's purpose — inline or a `translation-context.md` path), `formality`,
+`doNotTranslate`, `research` (`first-run`|`always`|`off`), `queries` (`report`|`high-stakes`|`off`),
+`glossary`, `include`/`exclude`, `output.mode`, `verifyCmd`/`buildCmd`, `creditInCommit`, and a
+`wordpress` block (`textdomain`, `makeMo`, `makeJson`). Command-line flags override the config for a
+single run.
+
+`formality` sets the register / T–V distinction the panel enforces where a language has one (German
+du/Sie, French tu/vous, Spanish tú/usted, Japanese politeness). It is **either** a string —
+`formal` | `informal` | `auto` — applied to every target language, **or** an object for per-language
+control (`{ "default": "formal", "de": "informal", "ja": "formal" }`), where unspecified languages
+fall back to `default`, else `auto`. Default (field absent, or `auto`) uses each language's
+conventional register for the product/context — i.e. today's behavior, so it's non-breaking; for a
+language with no T–V distinction (e.g. English) `formal`/`informal` is read as overall tone.
+Resolution (later wins): `--formality <formal|informal|auto>` (global for the run) → `config.formality`
+(per-language object lookup, else its `default`, else `auto`) → `auto`.
 
 `creditInCommit` (default `false`) is the only attribution knob. The run **report always** credits
 the tool (`Translated with Translation Agency <version> — <repo URL>`) — operator-facing, never
@@ -255,7 +266,7 @@ Translation Agency/
 ├── README.md                     # GitHub landing page
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 0.8.1
+├── VERSION                       # 0.9.0
 ├── .gitignore
 ├── translation.config.json      # default settings (source/target langs, specialization, output, formats)
 ├── translation.config.schema.json # JSON Schema for the config (editor autocomplete + typo-catching)

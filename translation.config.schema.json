@@ -31,6 +31,24 @@
       "type": "string",
       "description": "What this project IS — purpose, audience, register/brand voice, domain notes. Lets the translator pick the right sense of a word. A short description inline, OR a path to a translation-context.md file."
     },
+    "formality": {
+      "description": "Register / T–V distinction the panel enforces where a language has one (German du/Sie, French tu/vous, Spanish tú/usted, Japanese politeness). Either a single string applied to every target language, or an object for per-language control ({ \"default\": …, \"de\": …, \"ja\": … }) whose values are the same enum; unlisted languages fall back to 'default', else 'auto'. 'auto' (also the meaning when the field is absent) uses the language's conventional register for this product/context — today's behavior, non-breaking. Where a language has no T–V distinction, formal/informal is read as overall tone. Resolution (later wins): --formality flag → this setting → auto.",
+      "oneOf": [
+        {
+          "type": "string",
+          "enum": ["formal", "informal", "auto"],
+          "description": "One register applied to every target language."
+        },
+        {
+          "type": "object",
+          "description": "Per-language register. Optional 'default' key plus any BCP-47/locale keys (e.g. 'de', 'pt-BR', 'ja'); each value is formal|informal|auto. Unlisted languages fall back to 'default', else 'auto'.",
+          "additionalProperties": {
+            "type": "string",
+            "enum": ["formal", "informal", "auto"]
+          }
+        }
+      ]
+    },
     "doNotTranslate": {
       "type": "array",
       "items": { "type": "string" },

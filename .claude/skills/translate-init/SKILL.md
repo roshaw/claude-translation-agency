@@ -61,6 +61,15 @@ Cover, in order:
    for an unattended run (default `[]`).
 2. **Target languages** — *"Which languages should we translate INTO? Use language codes like `de`,
    `fr`, `pt-BR`, or WordPress form `de_DE`."* Default = detected set; free-text to add.
+2b. **Formality (register)** — *"Many languages force a formal-or-informal way of addressing the
+   reader — German du/Sie, French tu/vous, Spanish tú/usted, Japanese politeness levels. How should
+   the translator address the reader?"* Options: `auto` (default — *"use each language's conventional
+   register for this kind of product; leave it to the translator"*), `formal` (*"polite/formal
+   address everywhere — Sie, vous, usted"*), `informal` (*"familiar/casual address everywhere — du,
+   tu, tú"*). Offer answering **once for all languages** (writes a single string), or **per language**
+   if they want different registers for different targets (writes an object like
+   `{ "default": "formal", "de": "informal" }`). For languages with no T–V distinction (e.g.
+   English) this just nudges overall tone. Skip for an unattended run (default `"auto"`).
 3. **Source language** — *"What language is the original content in?"* Default = detected; only ask
    if detection was unsure.
 4. **Domain specialization** — *"Which domain profile should the translator use? It sets the
@@ -88,7 +97,8 @@ Cover, in order:
 
 Write `translation.config.json` at the project root, using the repo template's shape and keeping the
 explanatory `$comment_*` keys. Fill: `sourceLang`, `targetLangs`, `specialization`, `context` (inline
-or the `translation-context.md` path), `doNotTranslate` (the pass-through rules, or `[]`), `research`,
+or the `translation-context.md` path), `formality` (the string `"auto"`/`"formal"`/`"informal"`, or a
+per-language object if they chose that), `doNotTranslate` (the pass-through rules, or `[]`), `research`,
 `queries`, `output.mode`, `include`/`exclude`
 (always add the output dir + `translations/**` to `exclude`), `verifyCmd`/`buildCmd`, and the
 `wordpress` block only if gettext files were detected. Leave `projectPath` `""` (the config lives in

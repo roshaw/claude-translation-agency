@@ -17,6 +17,7 @@ native_name: <e.g. Deutsch>
 locale_meta: { locale: "de-DE", decimal: ",", group: "." }   # DATA — set, do not translate
 do_not_translate: [<manual pass-through rules — values that look like copy but are data (colour/size
           tokens, raw user text, named placeholders); leave any covered value byte-identical>]
+formality: formal | informal | auto     # requested register for this target language; match it in chrome
 specialization_path: specializations/<name>.md   # you skip its terminology block; you never translate terms
 verify_cmd: <optional gate, e.g. "npx tsc --noEmit"; empty for plain catalogs>
 ```
@@ -61,6 +62,7 @@ For each whitelisted entry:
 - Read the source value; translate to natural, plain target-language chrome. Match register: one word in → one word out; a button label → a button label.
 - **Preserve every placeholder / `printf` token identically** (`{count}`, `%s`, `%1$s`, `{{name}}`). A dropped or renamed token silently breaks rendering.
 - **Tone:** neutral, plain, product-UI — not legalese, not marketing fluff. Match the existing translations in this file's untouched entries.
+- **Formality:** match the requested `formality` where the language has a T–V form — `formal` → the polite address (e.g. German *Melden Sie sich an*), `informal` → the familiar/imperative (e.g. *Anmelden*) — and keep it consistent with the rest of the file. `auto` → the conventional register; for languages with no T–V distinction (e.g. English) it only affects overall tone, so don't force anything.
 - **Brand discipline:** any brand/product name on the project's do-not-translate list stays the literal source string — never translated, transliterated, declined, or pluralized.
 - **Pass-through rules:** if a `do_not_translate` rule covers part of a value (a colour/size token like `42x2`, a raw user-entered string, a named placeholder), leave that part **byte-identical** — translate only the surrounding chrome, never the covered token.
 - **`.po` specifics:** fill the `msgstr` (or every `msgstr[n]` for a plural entry) from the `msgid`; keep `msgctxt`, `#:` source-ref comments, and header fields intact.

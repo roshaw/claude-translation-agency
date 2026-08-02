@@ -34,6 +34,9 @@ target_langs: [bg, de, fr, ...]
 specialization: general | technical | marketing | legal | <custom>
 specialization_path: specializations/<name>.md   # read this for the C2 terminology rules
 context: <the product's purpose/audience/register — the sense-disambiguator; pass it to workers>
+formality: { <lang>: formal | informal | auto, ... }   # requested register per target language;
+          # formal/informal selects the language's T–V form (du/Sie, tu/vous, tú/usted) and must stay
+          # consistent across the run; auto = the language's conventional register. Pass to workers; enforce in C6.
 do_not_translate: [<manual pass-through/verbatim rules from config.doNotTranslate + notes.md — strings
           that look like copy but are data; treat as absolute, fold into C1/C3, pass to workers>]
 glossary_path: <the run glossary from the research pass>  # the C2 authority, above the specialization
@@ -67,6 +70,7 @@ Read, in this order:
 2. **The `glossary_path`** — the run glossary from the research pass. This is the **authority** for C2: a candidate that contradicts a glossary term of art is a C2 flag; a candidate that matches it is correct even if it's not what you'd have picked. It overrides the specialization on any term it defines.
 3. **The specialization module** at `specialization_path` (default `specializations/general.md`). Its "Terminology & non-negotiables" and "Verbatim / do-not-translate" sections back your C2 (terminology) and C3 (identity) checks where the glossary is silent.
 3b. **The `do_not_translate` rules** (from the brief). These are the operator's manual pass-through/verbatim instructions — strings that look like copy but are project-specific data (colour/size tokens, raw user-entered text, named placeholders, etc.). Treat each as an **absolute constraint**: a value covered by a rule must stay byte-identical to the source, so it is **exempt from C1** (never a "leftover" flag) and **enforced by C3** (any alteration of it is an identity violation). Keep them in mind for every batch and pass them to the workers.
+3c. **The `formality` map** (from the brief) — the requested register per target language. `formal`/`informal` selects the language's T–V form where it has one (German du/Sie, French tu/vous, Spanish tú/usted, Japanese politeness); `auto` means the language's conventional register for this product/context. Hold each language's requested value as you review — it is a **C6** constraint (Step 3): a candidate whose register contradicts the request, or that is inconsistent within the run, is a C6 flag. Pass the value to every worker so they write in the right register the first time.
 4. **The project conventions** at `project_conventions` if supplied (the target project's i18n contract, brand rules, tone) — source-of-truth language, placeholder syntax, file-format rules.
 5. **The failure-class memory encoded in this prompt** (the C1–C7 checklist + the sweeps). You do not need external memory files.
 
@@ -106,15 +110,18 @@ For each batch the skill suggests `Junior` or `Senior`. Sanity-check before spaw
 Agent({
   subagent_type: "translate-junior" | "translate-senior",
   prompt: <the batch brief — file list, source & target lang, specialization_path, context,
-           do_not_translate, glossary_path, queries_mode, queries_path, verify_cmd, and for code the exact keys>
+           formality (this batch's target-lang value), do_not_translate, glossary_path, queries_mode,
+           queries_path, verify_cmd, and for code the exact keys>
 })
 ```
 
-Always pass `context`, `do_not_translate`, `glossary_path`, `queries_mode`, and `queries_path` through
-to the Senior — the glossary and context are what keep terminology consistent across batches, and the
+Always pass `context`, the batch language's `formality` value, `do_not_translate`, `glossary_path`,
+`queries_mode`, and `queries_path` through to the Senior — the glossary and context are what keep
+terminology consistent across batches, `formality` keeps the T–V register right and uniform, and the
 queries path is where the Senior logs uncertainty asynchronously (it must not block). Junior batches
-don't need the glossary (chrome only) but **do** get `context` and `do_not_translate` (the pass-through
-rules apply to chrome too — a colour token or placeholder in a button label must stay verbatim).
+don't need the glossary (chrome only) but **do** get `context`, `formality`, and `do_not_translate`
+(the register applies to chrome too — an imperative *Anmelden* vs. a polite *Melden Sie sich an* button
+must match the request; a colour token or placeholder in a button label must stay verbatim).
 
 The worker returns the diff it applied plus a one-line summary per file. If a `verify_cmd` was supplied, the worker ran it inside its spawn; if it failed the worker reports that and you skip review (the file isn't valid yet — surface to the skill).
 
@@ -169,6 +176,11 @@ For strings/documents containing markup (HTML tags, Markdown, MDX/JSX components
 ## C6 — Framing / register fidelity
 
 For domain-prose surfaces, confirm the translation preserves the source's *stance*, not just its words — the specialization module names the traps for its domain (e.g. legal: "reference" must not drift to "mandatory minimum"; medical: no dosage softening; marketing: brand-voice register). Machine-translation drift toward stiff, over-formal, calque-ridden phrasing is itself a flag — the target should read as naturally as the source. Flag register/framing drift as C6.
+
+**Formality (T–V) enforcement.** For each target language, check the candidate against the requested `formality` for that language:
+- If `formal` was requested, the copy must use the language's formal address (German *Sie*, French *vous*, Spanish *usted*, the appropriate Japanese politeness level); an informal form (*du*, *tu*, *tú*) where the language has a T–V distinction → **C6 flag**, and vice-versa for `informal` (e.g. a candidate using *Sie* when `informal` was requested).
+- The register must be **consistent across the whole run** for a language — a file that mixes *du* and *Sie* (or switches between batches) is a C6 flag even if no single string is wrong.
+- `auto` imposes no specific T–V choice — judge it only as ordinary register/naturalness (above). Where a language has no T–V distinction (e.g. English), read `formal`/`informal` as overall tone and never flag an "awkward" forced construct.
 
 ## C7 — Structural parity of derived / duplicated copy
 

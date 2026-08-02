@@ -2,7 +2,7 @@
 
 > Ready-to-use Claude skills and agents that translate **any project or set of files into any language**, with a domain **specialization** you choose per run.
 
-[![Version](https://img.shields.io/badge/version-0.8.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.9.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 Translation Agency is a portable localization pipeline for [Claude Code](https://claude.com/claude-code) / Cowork. It was extracted and generalized from a production legal-fee-calculator localization system, whose three-tier "translator panel" and adversarial-QA design proved out over many real passes — then had all its project-specific hardwiring lifted out into settings so the same machinery works on a WordPress plugin, a React app's i18n, a folder of Markdown docs, or a batch of JSON files.
@@ -206,6 +206,7 @@ All fields are optional (each falls back to a default); CLI flags override the f
   "targetLangs": ["de", "fr", "es"],
   "specialization": "general",
   "context": "One or two sentences on what the product is and who it's for.",
+  "formality": "auto",
   "doNotTranslate": [
     "Colour/hex codes and size tokens like 42x2 are pass-through data, not copy — leave verbatim.",
     "Raw handwritten-text field values are pass-through — do not translate.",
@@ -230,7 +231,15 @@ instructions for strings that *look* like copy but are project-specific data —
 raw user-entered text, named placeholders — that must stay byte-identical. The panel treats each as
 an absolute constraint, adding covered values to its verbatim exempt list so they're never translated
 and never flagged as leftovers. (For a single fixed *term*, a glossary row with `lang=*` is the
-tighter tool; use `doNotTranslate` for patterns and instructions.) `research` controls the
+tighter tool; use `doNotTranslate` for patterns and instructions.) `formality` sets the register /
+T–V distinction the panel enforces where a language has one (German du/Sie, French tu/vous, Spanish
+tú/usted, Japanese politeness): either a single string `"formal"` / `"informal"` / `"auto"` for every
+target language, or an object for per-language control (`{ "default": "formal", "de": "informal",
+"ja": "formal" }`, unlisted languages falling back to `"default"`, else `"auto"`). `"auto"` — the
+default, and the behavior when the field is absent — uses each language's conventional register for
+your product (unchanged from before), and for languages with no T–V distinction (e.g. English)
+`formal`/`informal` is read as overall tone. Override for a run with `--formality <formal|informal|auto>`
+(global). `research` controls the
 terminology-glossary pass (`first-run` builds it once per language then reuses it; `always` re-runs
 it; `off` disables). `queries` controls uncertainty handling (`report` logs questions to an async file
 without interrupting you; `high-stakes` also asks interactively for a few legal/medical/financial
@@ -278,7 +287,7 @@ translation-agency/
 ├── README.md                     # this file
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 0.8.1
+├── VERSION                       # 0.9.0
 ├── translation.config.json       # default settings
 ├── translation.config.schema.json # JSON Schema for the config (editor autocomplete + validation)
 ├── .claude/
@@ -290,7 +299,7 @@ translation-agency/
 
 ## Versioning
 
-This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **0.8.1**.
+This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **0.9.0**.
 
 ## Contributing
 

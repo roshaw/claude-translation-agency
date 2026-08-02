@@ -99,7 +99,9 @@ fills it).
 
 So `/translate` can list and remember it:
 
-1. In the toolkit's `projects/registry.json`, add (or update, matching by `path`) an entry:
+1. In the toolkit's `projects/registry.json`, add (or update, matching by `path`) an entry. **The
+   registry and the per-project folders are git-ignored (local only)** — if `projects/registry.json`
+   doesn't exist yet (fresh checkout), create it first as `{ "version": 1, "projects": [] }`, then add:
    ```json
    { "slug": "myapp", "name": "MyApp", "path": "<abs path>", "sourceLang": "<...>",
      "targetLangs": ["<...>"], "specialization": "<...>", "outputMode": "<...>",

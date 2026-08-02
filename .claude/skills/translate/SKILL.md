@@ -104,7 +104,8 @@ single command with quoted content, not a chain.
    a. `--path <dir>` / a bare `<path>` argument (an absolute computer path like `C:\Projects\MyApp`
       is fine — accept it as given).
    b. Else, if the current folder has a `translation.config.json`, use the current folder.
-   c. Else **offer a project picker** from the registry: read the toolkit's `projects/registry.json`.
+   c. Else **offer a project picker** from the registry: read the toolkit's `projects/registry.json`
+      (git-ignored/local — treat a **missing** file the same as an empty one).
       If it lists projects, AskUserQuestion "Which project should I translate?" with each registered
       project as an option (label = name, description = path + langs + last run), plus an "Other
       (enter a path)" path. If exactly one project is registered, offer it as the default. If the
@@ -377,9 +378,10 @@ project's ignore file if not already ignored.
 ## Step 8.5 — Update project memory
 
 Maintain the toolkit's registry + per-project memory so the next run benefits:
-- In `projects/registry.json`, set the project's `lastRunAt` to today (`date` Bash call) and adjust
-  `status` if it changed. If the project had **no** entry, offer to add one now (same shape as
-  `/translate-init` Step 3.5) and create `projects/<slug>/notes.md` from the template.
+- In `projects/registry.json` (git-ignored/local — create it as `{ "version": 1, "projects": [] }`
+  if missing), set the project's `lastRunAt` to today (`date` Bash call) and adjust `status` if it
+  changed. If the project had **no** entry, offer to add one now (same shape as `/translate-init`
+  Step 3.5) and create `projects/<slug>/notes.md` from the template.
 - Append one line to the top of the `notes.md` **Run log**: `<date> — <scope> → <verdict>
   (<languages>, <n> fixes)`. If the run made a durable decision (a terminology call, a new
   do-not-translate item, a format quirk discovered), add it to the relevant notes section — keep it

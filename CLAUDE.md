@@ -1,6 +1,6 @@
 # Translation Agency
 
-**Version 0.4.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
+**Version 0.4.1** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
 
 A reusable, project-agnostic translation system: ready-to-use **skills** and **agents** that
 translate **any project or set of files into any language**, with a domain **specialization** you
@@ -148,8 +148,9 @@ When `--out` isn't given: `inplace`, unless a per-language catalog/tree already 
 
 ## Projects registry & memory
 
-The toolkit keeps a record of **every project it translates**, versioned in this repo under
-`projects/`:
+The toolkit keeps a **local** record of **every project it translates** under `projects/` (the
+`registry.json` and every `<slug>/` folder are **git-ignored** — they hold private, project-specific
+data and are recreated locally by the skills; only `_template/` and the README are tracked):
 
 - `projects/registry.json` — the index: each project's path, source/target languages,
   specialization, output mode, status, and last-run date.
@@ -231,7 +232,7 @@ Translation Agency/
 ├── README.md                     # GitHub landing page
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 0.4.0
+├── VERSION                       # 0.4.1
 ├── .gitignore
 ├── translation.config.json      # default settings (source/target langs, specialization, output, formats)
 ├── .claude/

@@ -9,7 +9,19 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
-## [0.4.0] — 2026-08-02
+## [0.4.1] — 2026-08-02
+
+### Changed
+- **Per-project data is now local, not committed.** `projects/registry.json` and
+  every `projects/<slug>/` folder (notes, glossary, queries) are git-ignored and
+  `registry.json` is untracked — they hold private, project-specific data that
+  should not land in this public repo, and ignoring them stops every
+  `init`/`translate` run from showing up as a diff. Only `projects/_template/`
+  and `projects/README.md` remain tracked. The `/translate-init` and `/translate`
+  skills now create `registry.json` (`{ "version": 1, "projects": [] }`) if it is
+  missing, and treat a missing registry the same as an empty one. Docs updated to
+  reflect that project memory is local (sync a `<slug>/` folder yourself if you
+  want it to travel between machines).
 
 ### Added
 - **`doNotTranslate` config option**: a list of manual pass-through / verbatim
@@ -111,7 +123,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/roshaw/claude-translation-agency/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/roshaw/claude-translation-agency/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.2.0...v0.3.0

@@ -12,6 +12,15 @@ _stage/
 .translate-last-review
 .translate-report-*.json
 
+# Per-project data written by /translate-init and /translate — LOCAL ONLY.
+# Keeps private client project names, paths, notes, glossaries, and queries out of
+# this (public) repo, and stops every init/translate run from showing as a diff.
+# The toolkit ships only the template + README; the registry and per-project folders
+# are recreated locally by the skills as you use them.
+/projects/*/
+!/projects/_template/
+/projects/registry.json
+
 # Generated translation output trees (uncomment if you don't want to commit outputs)
 # translations/
 

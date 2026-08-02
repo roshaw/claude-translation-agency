@@ -4,16 +4,22 @@ This folder is the Translation Agency's record of **every project it translates*
 readable index plus a human-readable memory file per project. It lets any future run answer "what
 projects am I working with, and what do I already know about this one?" without re-deriving it.
 
-Because it lives in the toolkit repo, it's versioned in git and travels with the project.
+**This data is LOCAL, not committed.** `registry.json` and every `<slug>/` folder are git-ignored
+(see the repo `.gitignore`) — they hold private, project-specific data (client names, local paths,
+terminology, notes) that must not land in this public toolkit repo, and keeping them out also stops
+every `init`/`translate` run from showing up as a diff. The toolkit ships only `_template/` and this
+README; the skills recreate `registry.json` and the per-project folders locally as you use them. If
+you want a project's memory to travel between your own machines, sync the `projects/<slug>/` folder
+yourself (e.g. a private repo or file sync) — don't commit it here.
 
 ## Layout
 
 ```
 projects/
-├── registry.json         # index of all projects (paths, langs, specialization, status, last run)
+├── registry.json         # LOCAL index of all projects (paths, langs, specialization, status, last run) — git-ignored
 ├── _template/
-│   └── notes.md          # copied to projects/<slug>/notes.md for a new project
-└── <slug>/               # one folder per project (slug = kebab-case of the project name)
+│   └── notes.md          # copied to projects/<slug>/notes.md for a new project (tracked)
+└── <slug>/               # LOCAL, git-ignored — one folder per project (slug = kebab-case of the project name)
     ├── notes.md          # per-project memory (purpose/context, decisions, quirks, run log)
     ├── glossary.csv      # the run glossary — written by the research pass, editable by you
     └── queries-<date>.md # async uncertainty log — the translator's questions for you to review

@@ -19,6 +19,7 @@ It is a **setting**, not a hardcoded domain. Every translation run picks exactly
 | `technical.md` | Software/developer material — UI strings, API docs, README/CLI help, error messages, WordPress theme/plugin strings. Keeps identifiers, code, and markup exact. |
 | `marketing.md` | Brand and campaign copy — landing pages, ads, email, CTAs. Transcreation-friendly: prioritizes idiomatic impact and brand voice over literal fidelity. |
 | `legal.md` | Legal/compliance copy — the reference example ported from the source project (statute-fee calculator). Citations verbatim, terms of art, "reference not mandatory-minimum" framing. Included as a worked example of a high-constraint domain. |
+| `banking.md` | Banking/financial-services copy — account/card products, payments, lending, rates & fees, statements, and the regulatory disclosures around them. Money and identifiers verbatim, market terms of art, obligation/risk framing never softened. |
 
 ## Adding your own
 

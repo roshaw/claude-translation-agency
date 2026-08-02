@@ -1,6 +1,6 @@
 # Translation Agency
 
-**Version 0.2.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
+**Version 0.3.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
 
 A reusable, project-agnostic translation system: ready-to-use **skills** and **agents** that
 translate **any project or set of files into any language**, with a domain **specialization** you
@@ -71,6 +71,7 @@ Seeded presets (in `specializations/`):
 | `technical` | Software/dev material, API docs, error strings, WordPress theme/plugin strings. |
 | `marketing` | Brand/campaign copy — transcreation, brand voice, punchy CTAs. |
 | `legal` | Reference example (the domain this was extracted from) — citations verbatim, terms of art, "reference not mandatory" framing. |
+| `banking` | Banking/financial-services — money, rates, and identifiers verbatim; market terms of art; obligation/risk framing never softened; disclosures preserved. |
 
 **Add your own** by dropping a `specializations/<name>.md` (skeleton in `specializations/README.md`)
 and running `/translate --domain <name>` — no code changes. A project **glossary** (config
@@ -190,6 +191,25 @@ Command-line flags override the config for a single run.
 - **Never changes source facts, never touches the source files, never pushes.** It translates copy;
   it doesn't add keys, edit numbers, or deploy.
 
+## Release & commit convention (this repo)
+
+**Every commit-and-push bumps the version first.** Before staging a commit, decide the bump from
+what the change actually does, then commit and push. Never commit a functional change to this repo
+without a version bump in the same commit.
+
+1. **Choose the bump** ([SemVer](https://semver.org)) from the work in the diff:
+   - **PATCH** (`0.2.0 → 0.2.1`) — fixes, wording/doc tweaks, no new capability.
+   - **MINOR** (`0.2.0 → 0.3.0`) — a new feature: a new `specializations/*.md`, a new format,
+     a new skill/agent, a new config option.
+   - **MAJOR** (`0.2.x → 1.0.0`) — a breaking change to how skills, agents, or config work.
+2. **Apply the bump everywhere the version appears**: `VERSION`, the `CLAUDE.md` header line, the
+   `README.md` badge + "Current version" line + `VERSION` tree comment, and both `VERSION` tree
+   comments. (Grep the old version string to catch them all.)
+3. **Update `CHANGELOG.md`**: move the `[Unreleased]` entries under a new `## [X.Y.Z] — <date>`
+   heading (today's date) and refresh the compare-links at the bottom.
+4. **Then commit and push** — one commit that carries both the change and its version bump. Tag
+   `vX.Y.Z` if cutting a release.
+
 ## Layout
 
 ```
@@ -198,7 +218,7 @@ Translation Agency/
 ├── README.md                     # GitHub landing page
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 0.2.0
+├── VERSION                       # 0.3.0
 ├── .gitignore
 ├── translation.config.json      # default settings (source/target langs, specialization, output, formats)
 ├── .claude/
@@ -216,7 +236,8 @@ Translation Agency/
 │   ├── general.md                # default
 │   ├── technical.md
 │   ├── marketing.md
-│   └── legal.md                  # ported reference example
+│   ├── legal.md                  # ported reference example
+│   └── banking.md                # financial-services domain
 └── projects/
     ├── README.md                 # registry + memory contract
     ├── registry.json             # index of every project translated

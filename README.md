@@ -2,7 +2,7 @@
 
 > Ready-to-use Claude skills and agents that translate **any project or set of files into any language**, with a domain **specialization** you choose per run.
 
-[![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.3.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 Translation Agency is a portable localization pipeline for [Claude Code](https://claude.com/claude-code) / Cowork. It was extracted and generalized from a production legal-fee-calculator localization system, whose three-tier "translator panel" and adversarial-QA design proved out over many real passes — then had all its project-specific hardwiring lifted out into settings so the same machinery works on a WordPress plugin, a React app's i18n, a folder of Markdown docs, or a batch of JSON files.
@@ -26,7 +26,7 @@ The `translate` skill computes scope and per-batch tier, (optionally) runs the R
 - **Context-aware** — you describe what the product is; the translator uses it to pick the right *sense* of ambiguous words ("Book" = reserve vs. the object).
 - **Terminology research** — an optional research pass builds a reusable per-language glossary before translating, so terms of art are correct and consistent.
 - **Non-blocking uncertainty** — when unsure, the translator best-guesses and logs the question to an async queries file; it never turns you into an answer machine.
-- **Domain specialization as a per-run setting** — `general` (default), `technical`, `marketing`, `legal`, or your own.
+- **Domain specialization as a per-run setting** — `general` (default), `technical`, `marketing`, `legal`, `banking`, or your own.
 - **Broad format support** — JS/TS & JSON message catalogs, i18next/`.arb`, YAML, `.resx`, `.strings`; **WordPress / gettext** (`.pot`, `.po`, plurals, `msgctxt`, WP JSON); Markdown/MDX/HTML/XML/XLIFF content trees; `.docx`, `.txt`, subtitles (`.srt`/`.vtt`), CSV.
 - **Flexible output** — write siblings next to each source (default), copy into an isolated `translations/<lang>/…` tree, or edit an existing per-language catalog in place. See [Output modes](#output-modes--what-each-does).
 - **Quality gates every run** — zero source-language leftovers, identity tokens verbatim, placeholders & markup preserved, correct terminology/framing, and a completeness gate that never lets a full run finish with a silent gap.
@@ -85,6 +85,23 @@ The translator's domain expertise is a **per-run setting**, not baked in. It dec
 | `technical` | Software/dev material, API docs, error strings, WordPress theme/plugin strings. |
 | `marketing` | Brand/campaign copy — transcreation, brand voice, punchy CTAs. |
 | `legal` | Reference example — citations verbatim, terms of art, "reference not mandatory" framing. |
+| `banking` | Banking/financial-services — money & identifiers verbatim, market terms of art, obligation/risk framing never softened. |
+
+### Which one to pick
+
+Pick by **what the copy is doing**, not what industry it's from — the same bank ships marketing pages, product terms, and app UI, and each wants a different module.
+
+- **`general`** — everyday product copy, docs, blog posts, generic UI with no regulatory or domain constraints. The safe default; use it when nothing below clearly fits.
+- **`technical`** — the material *is* software or its docs: message catalogs, API/SDK/CLI docs, error strings, WordPress `.po`/`.pot`. Choose whenever code, identifiers, or markup appear in the copy.
+- **`marketing`** — persuasion is the point: landing pages, ads, email, CTAs, taglines. Optimizes idiomatic impact and brand voice over literal fidelity (transcreation).
+- **`legal`** — the text makes or describes statements about the law: statutes, T&Cs, disclaimers, privacy notices, court/procedural content. Citations verbatim, terms of art, framing (reference vs binding) preserved exactly.
+- **`banking`** — financial *products and their numbers*: accounts/cards, payments, lending, rates & fees, statements, and the regulated disclosures around them. Money and identifiers verbatim, market terms of art, obligation/risk framing never softened.
+
+**When domains overlap** (common for finance, health, and other regulated products), pick by the dominant risk in the string:
+
+- Promotional finance copy (a campaign for a savings account) → **`marketing`**; the actual account terms, rate table, or statement → **`banking`**; the binding contract/statute text → **`legal`**.
+- Developer docs for a fintech API → **`technical`**; the same product's fee disclosures → **`banking`**.
+- A single run uses one module, so choose for the bulk of the surface and lean on a project **glossary** to lock the handful of cross-cutting terms. If a batch is genuinely split, translate it in two runs with different `--domain` values over separate `--path`/glob scopes.
 
 Add your own by dropping a `specializations/<name>.md` (skeleton in [`specializations/README.md`](specializations/README.md)) and running `/translate --domain <name>` — no code changes. A project glossary (config `glossary`) overrides any specialization on the terms it defines.
 
@@ -227,18 +244,18 @@ translation-agency/
 ├── README.md                     # this file
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 0.2.0
+├── VERSION                       # 0.3.0
 ├── translation.config.json       # default settings
 ├── .claude/
 │   ├── agents/                   # translate-lead, -senior, -junior, -researcher
 │   └── skills/                   # translate-init/, translate/, translate-add-locale/
-├── specializations/              # general, technical, marketing, legal (+ README)
+├── specializations/              # general, technical, marketing, legal, banking (+ README)
 └── projects/                     # registry.json + per-project notes.md / glossary.csv / queries (+ _template)
 ```
 
 ## Versioning
 
-This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **0.2.0**.
+This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **0.3.0**.
 
 ## Contributing
 

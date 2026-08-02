@@ -9,6 +9,21 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-08-02
+
+### Added
+- **`banking` specialization** (`specializations/banking.md`): a high-constraint
+  domain module for retail/commercial/investment banking and financial-services
+  copy — money, rates, and financial identifiers kept verbatim; market terms of
+  art enforced; obligation/risk framing and regulated disclosures never softened.
+  Select with `--domain banking` or `translation.config.json → specialization`.
+- **"Which one to pick" guidance** in `README.md`: how to choose among the
+  specialization modules and resolve domain overlaps (marketing vs banking vs
+  legal vs technical) by the dominant risk in the copy.
+- **Release & commit convention** in `CLAUDE.md`: every commit-and-push bumps the
+  version first (PATCH/MINOR/MAJOR by the change), updates all version references
+  and the changelog, then commits and pushes.
+
 ## [0.2.0] — 2026-07-31
 
 Context-aware translation: the panel now works out the right vocabulary for the
@@ -75,6 +90,7 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/roshaw/claude-translation-agency/releases/tag/v0.1.0

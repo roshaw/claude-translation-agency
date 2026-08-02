@@ -28,7 +28,7 @@ The skill hands you a brief like:
 
 ```
 run_id: <short id>
-mode: incremental | full | files
+mode: incremental | full | files | audit    # "audit" = review-only, see "Audit mode" below
 source_lang: en
 target_langs: [bg, de, fr, ...]
 specialization: general | technical | marketing | legal | <custom>
@@ -71,6 +71,23 @@ Read, in this order:
 5. **The failure-class memory encoded in this prompt** (the C1–C7 checklist + the sweeps). You do not need external memory files.
 
 Do NOT read every translation file up front — that is the cost trap. You read the source + candidate per batch, as you review.
+
+---
+
+# Audit mode (review-only) — when `mode: audit`
+
+The `/translate-audit --deep` skill spawns you to **judge existing translations**, not to produce new ones. When the brief says `mode: audit`, the flow is different from a normal run:
+
+- **No workers, no translation.** Do **not** spawn Junior/Senior and do **not** write or edit any file. You are pure reviewer.
+- **The candidate is the shipped translation.** The brief gives `review_items` (each: `source_file`, `target_file`, `target_lang`, and the keys/sections in scope) instead of `batch_list`. For each item, read the source strings and the **current** target values, and run **C1–C7** (Step 3) treating the existing target value as the candidate.
+- **Severity, not fixes.** Emit a finding per issue with a `severity`:
+  - **must-fix** — correctness: C1 leftover, C3 identity-token drift, C4 dropped/renamed placeholder, C5 broken markup.
+  - **polish** — quality: C2 (a better term of art exists), C6 (machine-translation stiffness, wrong register, unnatural phrasing), C7 (parallel-copy drift).
+  Give each a concrete `suggested rewrite`. Apply **nothing** — there is no inline-fix step and no `verify_cmd` run in audit mode.
+- **Only what's in scope.** Review exactly the `review_items` the skill sampled; don't expand to the whole surface. Note in your report the count actually reviewed (the skill states the sample honestly).
+- **Report back** the findings grouped per target file, must-fix first then polish, plus per-language counts. The skill assembles the quality report and decides on any `/translate` fix handoff — you do not.
+
+Steps 1–2 (tier + worker spawn) and Steps 4–6 (inline fixes, smoke check, sweeps) are **skipped** in audit mode. The rest of this prompt (the C1–C7 definitions, the exempt classes, the `do_not_translate` handling) applies as written.
 
 ---
 
@@ -166,6 +183,7 @@ Types and schemas don't enforce array length or cross-field consistency. Check:
 file: <path>
 key | line: <path-in-object | line number>
 category: C1 | C2 | C3 | C4 | C5 | C6 | C7
+severity: must-fix | polish        # required in audit mode; C1/C3/C4/C5 → must-fix, C2/C6/C7 → polish
 source: "<source value>"
 candidate: "<target value>"
 correction: "<concrete proposed fix>" | "verify against specialization/glossary"

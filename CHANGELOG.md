@@ -9,6 +9,28 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [0.7.0] — 2026-08-02
+
+### Added
+- **`/translate-audit --deep` — quality review of existing translations.** Beyond
+  the default coverage pass, `--deep` spawns the `translate-lead` in a new
+  review-only **`audit` mode** to run the C1–C7 checklist over the *existing*
+  translations (domain-aware, using the specialization + glossary + context) and
+  report, per finding, a **severity** — `must-fix` (correctness: leftovers,
+  identity-token drift, dropped placeholders, broken markup) or `polish` (quality:
+  weak terminology, machine-translation stiffness / wrong register, parallel-copy
+  drift) — with the current value and a suggested rewrite. It is **scoped/sampled
+  by default** (`--sample N`, default 40, or `--files`/`--langs`) and reports the
+  sample honestly (no silent truncation). Still read-only; `--fix` hands the
+  flagged files to `/translate` to apply. New flags: `--deep`, `--sample`,
+  `--fix`, `--domain`. Writes a separate `translation-quality-<date>.md`.
+
+### Changed
+- **`translate-lead`** gained a review-only **`audit` mode**: no worker spawns, no
+  file edits — it treats each existing target value as the candidate, runs C1–C7,
+  and returns severity-tagged findings. The flag row now carries a `severity`
+  field. Normal translate runs are unchanged.
+
 ## [0.6.0] — 2026-08-02
 
 ### Added
@@ -151,7 +173,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/roshaw/claude-translation-agency/compare/v0.4.0...v0.4.1

@@ -1,6 +1,6 @@
 # Translation Agency
 
-**Version 0.10.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
+**Version 0.11.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
 
 A reusable, project-agnostic translation system: ready-to-use **skills** and **agents** that
 translate **any project or set of files into any language**, with a domain **specialization** you
@@ -249,14 +249,37 @@ hand. Run it any time — always before a release commit:
 **version consistency** (`VERSION` matches `package.json`, the `CLAUDE.md` header, the README badge +
 "Current version" line, and the `VERSION` tree comment in both docs); **changelog** (a dated
 `## [X.Y.Z] — <date>` heading + `[X.Y.Z]:` compare-link for the current version); **schema health**
-(the JSON Schema compiles under ajv draft 2020-12, the template config validates, and every fixture
-in `tests/fixtures/valid/` validates while every fixture in `tests/fixtures/invalid/` is rejected);
-**cross-references** (each specialization / skill dir / agent name is wired into the docs, and each
-skill dir has a `SKILL.md`); **frontmatter lint** (skills carry name + description; agents carry
-name + description + model + tools); and **JSON validity** of the config, schema, and `package.json`.
-One **SOFT** check warns (never fails) when the release's `vX.Y.Z` git tag isn't present yet — expected
-during the release commit itself, before the tag is pushed. Add fixtures under `tests/fixtures/` when
-you extend the schema; tighten a check's logic rather than weakening it if it's genuinely too strict.
+(the JSON Schema compiles under ajv draft 2020-12, the template config **and** the eval-fixture config
+validate, and every fixture in `tests/fixtures/valid/` validates while every fixture in
+`tests/fixtures/invalid/` is rejected); **cross-references** (each specialization / skill dir / agent
+name is wired into the docs, and each skill dir has a `SKILL.md`); **frontmatter lint** (skills carry
+name + description; agents carry name + description + model + tools); **JSON validity** of the config,
+schema, and `package.json`; and the **eval-harness self-test** (below). One **SOFT** check warns
+(never fails) when the release's `vX.Y.Z` git tag isn't present yet — expected during the release
+commit itself, before the tag is pushed. Add fixtures under `tests/fixtures/` when you extend the
+schema; tighten a check's logic rather than weakening it if it's genuinely too strict.
+
+### Two tiers: deterministic checks vs. the LLM eval
+
+The suite above is **Tier 1** — deterministic, offline, per-commit, no tokens. It cannot, on its own,
+prove that the *translator panel and coverage audit actually catch defects*: that's LLM behavior.
+**Tier 2** closes that gap without letting non-determinism into `npm test`:
+
+- **`examples/eval-fixture/`** — a tiny JSON catalog with **exactly 7 planted defects** (one per key:
+  leftover/C1, dropped placeholder/C4, wrong term/C2, formality/C6, plus the coverage classes
+  missing-key, empty-value, and missing-in-source), an answer key (`EXPECTED.md`), and a known-good
+  target (`expected-good/locales/de.json`).
+- **`tests/eval-assert.mjs`** (`npm run eval:assert`) — a deterministic Node script that encodes the
+  pass/fail post-conditions: `node tests/eval-assert.mjs <target.json> <source.json> [glossary.csv]
+  [--formality formal]`, printing each violation and a `N violations` line (exit 1 if any).
+- **The self-test is the teeth, and it runs inside `npm test`** (HARD): `check.mjs` runs
+  `eval-assert` against the good target (must be **0 violations**) and the defective target (must flag
+  **every planted class**). So we know the assertion script bites without spending a token.
+- **The actual LLM eval stays OUT of `npm test`** — it's a **manual, pre-release, token-costing**
+  runbook in `examples/eval-fixture/README.md`: Eval A points `/translate-audit` at the fixture and
+  cross-checks the coverage gaps; Eval B copies the fixture to a temp dir, runs `/translate --full`,
+  then re-runs `eval-assert` on the panel's output (expecting 0 violations). It is a confidence check
+  before a release, not a per-commit gate.
 
 ## Release & commit convention (this repo)
 
@@ -288,14 +311,23 @@ Translation Agency/
 ├── README.md                     # GitHub landing page
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 0.10.0
+├── VERSION                       # 0.11.0
 ├── .gitignore
 ├── package.json                  # npm test / npm start → tests/check.mjs; dev dep ajv
 ├── translation.config.json      # default settings (source/target langs, specialization, output, formats)
 ├── translation.config.schema.json # JSON Schema for the config (editor autocomplete + typo-catching)
 ├── tests/
-│   ├── check.mjs                 # deterministic invariant checker (npm test)
+│   ├── check.mjs                 # Tier-1 deterministic invariant checker (npm test)
+│   ├── eval-assert.mjs           # Tier-2 deterministic eval assertions (npm run eval:assert)
 │   └── fixtures/                 # valid/ (must validate) + invalid/ (must be rejected)
+├── examples/
+│   └── eval-fixture/             # planted-defect fixture + answer key for the Tier-2 behavioral eval
+│       ├── translation.config.json
+│       ├── glossary.csv          # sign in → anmelden (de)
+│       ├── locales/{en,de}.json  # en = source; de = DEFECTIVE (7 planted defects)
+│       ├── expected-good/locales/de.json  # correct de translation (self-test baseline)
+│       ├── EXPECTED.md           # answer key: every defect, its class, and the fix
+│       └── README.md             # runbook for the manual LLM eval (Eval A + Eval B)
 ├── .claude/
 │   ├── agents/
 │   │   ├── translate-lead.md       # Opus — orchestrator + adversarial QA (C1–C7)

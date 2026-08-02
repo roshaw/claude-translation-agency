@@ -9,6 +9,33 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [0.11.0] — 2026-08-03
+
+### Added
+- **Tier-2 behavioral eval — a planted-defect fixture + a deterministic assertion harness** that
+  validate what the deterministic Tier-1 `npm test` can't: that the translator panel and the coverage
+  audit actually **catch** defects. Purely additive test tooling; no skill, agent, or config behavior
+  changed.
+  - **`examples/eval-fixture/`** — a tiny `en → de` JSON message-catalog project (technical, formal)
+    with a glossary (`sign in → anmelden`) and **exactly 7 planted defects, one per key** so each is
+    isolated: **LEFTOVER** (C1), **DROPPED PLACEHOLDER** (C4), **WRONG TERM** (C2), **FORMALITY
+    VIOLATION** (C6), and the three coverage classes **MISSING KEY**, **EMPTY VALUE**, and
+    **MISSING-IN-SOURCE**. Ships an answer key (`EXPECTED.md`), a fully-correct baseline
+    (`expected-good/locales/de.json`), and a manual-eval runbook (`README.md`).
+  - **`tests/eval-assert.mjs`** (`npm run eval:assert`) — a deterministic, offline Node script:
+    `node tests/eval-assert.mjs <target.json> <source.json> [glossary.csv] [--formality formal]`.
+    It flags coverage gaps (missing / empty / missing-in-source), source-language leftovers, dropped
+    placeholders, glossary-term violations, and informal-register markers where formal is required;
+    prints each violation and a final `N violations` line (exit 1 if any). Also importable so the
+    Tier-1 checker can reuse it.
+  - **Eval-harness self-test wired into `npm test`** (new HARD check): `tests/check.mjs` runs
+    `eval-assert` against the known-good target (must report **0 violations**) and the defective
+    target (must flag **every planted class**) — proving the assertion script bites without spending
+    a token. Tier-1 also now validates the eval-fixture's `translation.config.json` against the root
+    schema. The actual LLM eval (Eval A: `/translate-audit`; Eval B: `/translate --full` then re-run
+    `eval-assert`) is documented as a **manual, pre-release, token-costing** procedure and stays
+    **out** of `npm test`, which remains deterministic and offline.
+
 ## [0.10.0] — 2026-08-02
 
 ### Added
@@ -248,7 +275,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.8.1...v0.9.0
 [0.8.1]: https://github.com/roshaw/claude-translation-agency/compare/v0.8.0...v0.8.1

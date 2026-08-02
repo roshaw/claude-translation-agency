@@ -10,6 +10,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import Ajv2020 from 'ajv/dist/2020.js';
+import { evaluate, parseGlossary } from './eval-assert.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -134,6 +135,17 @@ const version = read('VERSION').trim();
       cfgReason = `translation.config.json unreadable: ${e.message}`;
     }
     hard('SCHEMA validates template config', cfgOk, cfgReason);
+
+    // the eval-fixture's config must also validate (proves the fixture is well-formed)
+    let fxOk = false, fxReason = '';
+    const fxRel = 'examples/eval-fixture/translation.config.json';
+    try {
+      fxOk = validate(readJson(fxRel));
+      fxReason = fxOk ? `${fxRel} validates against the schema` : `errors: ${ajv.errorsText(validate.errors)}`;
+    } catch (e) {
+      fxReason = `${fxRel} unreadable: ${e.message}`;
+    }
+    hard('SCHEMA validates eval-fixture config', fxOk, fxReason);
 
     // fixtures/valid/* must all validate
     const validDir = 'tests/fixtures/valid';
@@ -283,7 +295,62 @@ const version = read('VERSION').trim();
 }
 
 // ===========================================================================
-// (g) GIT TAG  [SOFT]
+// (g) EVAL HARNESS SELF-TEST  [HARD]
+// ===========================================================================
+// Proves the Tier-2 behavioral assertion script (tests/eval-assert.mjs) actually
+// bites — deterministically, with no LLM. The known-good target must report ZERO
+// violations; the deliberately-defective target must report violations covering
+// EVERY planted class. If either drifts, the eval harness itself is broken.
+{
+  const FX = 'examples/eval-fixture';
+  const PLANTED = ['missing-key', 'empty-value', 'missing-in-source', 'leftover', 'placeholder', 'wrong-term', 'formality'];
+  let setupErr = null, source = null, glossary = [];
+  try {
+    source = readJson(`${FX}/locales/en.json`);
+    glossary = parseGlossary(read(`${FX}/glossary.csv`));
+  } catch (e) {
+    setupErr = e.message;
+  }
+
+  if (setupErr) {
+    hard('EVAL fixture loads', false, `could not load fixture: ${setupErr}`);
+  } else {
+    // good target -> 0 violations
+    let goodViol = null, goodErr = null;
+    try {
+      goodViol = evaluate({ target: readJson(`${FX}/expected-good/locales/de.json`), source, glossary, formality: 'formal' });
+    } catch (e) { goodErr = e.message; }
+    hard(
+      'EVAL good target clean',
+      !goodErr && goodViol.length === 0,
+      goodErr ? `errored: ${goodErr}` :
+        goodViol.length === 0 ? 'expected-good/locales/de.json -> 0 violations' :
+        `expected 0 violations, got ${goodViol.length}: ${goodViol.map((v) => `${v.class}:${v.key}`).join(', ')}`
+    );
+
+    // defective target -> violations covering every planted class
+    let badViol = null, badErr = null;
+    try {
+      badViol = evaluate({ target: readJson(`${FX}/locales/de.json`), source, glossary, formality: 'formal' });
+    } catch (e) { badErr = e.message; }
+    if (badErr) {
+      hard('EVAL bad target caught', false, `errored: ${badErr}`);
+    } else {
+      const seen = new Set(badViol.map((v) => v.class));
+      const missed = PLANTED.filter((c) => !seen.has(c));
+      hard(
+        'EVAL bad target caught',
+        badViol.length > 0 && missed.length === 0,
+        missed.length === 0
+          ? `defective locales/de.json -> ${badViol.length} violations covering all ${PLANTED.length} planted classes`
+          : `undetected planted classes: ${missed.join(', ')}`
+      );
+    }
+  }
+}
+
+// ===========================================================================
+// (h) GIT TAG  [SOFT]
 // ===========================================================================
 {
   const tag = `v${version}`;

@@ -1,0 +1,20 @@
+{
+  "app": {
+    "title": "Aufgabenverwaltung",
+    "tagline": "Organisieren Sie Ihre Arbeit"
+  },
+  "auth": {
+    "signInPrompt": "Bitte zum Fortfahren einloggen.",
+    "welcome": "Willkommen zurück!",
+    "signOut": "Abmelden",
+    "rememberMe": "Angemeldet bleiben"
+  },
+  "nav": {
+    "dashboard": "Übersicht",
+    "settings": ""
+  },
+  "errors": {
+    "notFound": "The page was not found",
+    "saveFailed": "Deine Änderungen konnten nicht gespeichert werden"
+  }
+}

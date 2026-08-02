@@ -1,0 +1,11 @@
+{
+  "$schema": "https://raw.githubusercontent.com/roshaw/claude-translation-agency/main/translation.config.schema.json",
+  "sourceLang": "en",
+  "targetLangs": ["de"],
+  "specialization": "technical",
+  "glossary": "glossary.csv",
+  "context": "A small task-manager web app for individuals; formal, trustworthy register.",
+  "formality": { "default": "formal", "de": "formal" },
+  "output": { "mode": "inplace" },
+  "include": ["locales/**"]
+}

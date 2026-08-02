@@ -1,0 +1,22 @@
+{
+  "app": {
+    "title": "Task Manager",
+    "tagline": "Organize your work"
+  },
+  "auth": {
+    "signInPrompt": "Please sign in to continue",
+    "welcome": "Welcome back, {username}!",
+    "signOut": "Sign out"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "settings": "Settings"
+  },
+  "errors": {
+    "notFound": "The page was not found",
+    "saveFailed": "Could not save your changes"
+  },
+  "actions": {
+    "confirm": "Confirm"
+  }
+}

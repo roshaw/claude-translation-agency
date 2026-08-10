@@ -372,13 +372,28 @@ The translated files are already written on disk (in `tree` mode under
   otherwise deliver key outputs via SendUserFile.
 - **`inplace` / `catalog` mode in a git repo, files changed:** show `git -C <root> status` and
   `git -C <root> diff` (two parallel calls). **Stage by name — never `git add -A`/`.`** — only the
-  files the panel wrote (the report lists them; skip pre-existing WIP the user excluded). Commit with
-  a HEREDOC, repo-conventional message (scope `i18n` or the dominant language code). **If
-  `config.creditInCommit` is `true`**, append an attribution trailer as the last line of the commit
-  message: `Translated-with: Translation Agency <version> (https://github.com/roshaw/claude-translation-agency)`
-  (read `<version>` from the toolkit's `VERSION` file). If `creditInCommit` is falsy (the default),
-  add **no** trailer. Never write attribution into the translated files themselves. Pre-commit hook
-  fails → fix the cause, re-stage, NEW commit — never `--amend`/`--no-verify`. Do NOT push.
+  files the panel wrote. **The commit must contain ONLY files this run produced — nothing else.**
+  - **The authority for that set is the Lead's report — its "Files written this run" list**, not a
+    `git status` scan and not a directory or glob. Stage exactly those paths: one `git -C <root>
+    add -- <path> …` with every path named. Never stage a directory, a glob, or "everything that
+    changed".
+  - **Assume the working tree changed under you during the run.** A parallel agent or process can
+    finish and leave an unrelated file staged, modified, or newly ready between Step 1's dirty
+    check and this commit — Step 1's snapshot does **not** protect the commit. That is precisely
+    how an unrelated, half-ready file gets swept into a translation commit and can break the app.
+  - **Verify before committing (hard gate).** After staging, run `git -C <root> diff --cached
+    --name-only` and confirm the staged set is **exactly equal** to the panel's file list — no
+    extra paths, no missing ones. If anything extra appears (a concurrent agent's file, stray WIP),
+    **do not commit**: unstage the extras by name (`git -C <root> restore --staged -- <path>`),
+    re-verify, and only then commit. If you cannot reconcile the staged set to the panel list, STOP
+    and surface it to the user rather than committing a superset.
+  - Skip pre-existing WIP the user excluded at Step 1. Commit with a HEREDOC, repo-conventional
+    message (scope `i18n` or the dominant language code). **If `config.creditInCommit` is `true`**,
+    append an attribution trailer as the last line of the commit message: `Translated-with:
+    Translation Agency <version> (https://github.com/roshaw/claude-translation-agency)` (read
+    `<version>` from the toolkit's `VERSION` file). If `creditInCommit` is falsy (the default), add
+    **no** trailer. Never write attribution into the translated files themselves. Pre-commit hook
+    fails → fix the cause, re-stage, NEW commit — never `--amend`/`--no-verify`. Do NOT push.
 - **Non-git set:** the outputs are on disk; deliver each via SendUserFile so the user can download them.
 
 ## Step 8 — Advance the marker (git incremental runs)

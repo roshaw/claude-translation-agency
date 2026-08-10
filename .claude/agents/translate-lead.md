@@ -265,8 +265,18 @@ Flags by category (batches + sweeps)
 Open questions to surface to user
   - <one line per residual>
 
+Files written this run (exact commit scope — one repo-relative path per line, no globs, no dirs)
+  - <path>
+  - <path>
+
 Final verdict: i18n OK | i18n OK — N corrections applied | i18n NEEDS ATTENTION
 ```
+
+The **Files written this run** list is authoritative: it must enumerate every file the panel
+created or edited this run, and **only** those — no source files, no unrelated paths. The skill
+stages exactly this set and refuses to commit anything beyond it, so a concurrent agent's file
+can't leak into the translation commit. If you edited a file, it's on the list; if you didn't
+touch it, it isn't.
 
 Return to the skill. The skill runs the final full build/verify (if any) and decides whether to commit.
 

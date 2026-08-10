@@ -9,6 +9,27 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-08-10
+
+### Added
+- **Commit scope is now a hard guarantee: a translation commit contains only the run's own files.**
+  When `/translate` commits (`inplace`/`catalog` git runs, opt-in), it stages by name and now
+  **verifies** the staged set against an authoritative file list before committing — closing a gap
+  where a *concurrent* agent or process could leave an unrelated, half-ready file staged/modified
+  between the start-of-run dirty check and the commit, letting it ride along into the translation
+  commit and potentially break the app.
+  - **`translate-lead` report** now emits an explicit **"Files written this run"** list (one
+    repo-relative path per line, no globs or directories) — every file the panel created or edited,
+    and only those. This is the authority for commit scope (`.claude/agents/translate-lead.md`).
+  - **`/translate` Step 7** stages exactly that list by name, then runs `git diff --cached
+    --name-only` as a **hard pre-commit gate**: the staged set must be *exactly equal* to the
+    panel's list. Any extra path (a concurrent agent's file, stray WIP) is unstaged by name and
+    re-verified; if it can't be reconciled, the run STOPs and surfaces rather than committing a
+    superset. The old "stage by name, never `git add -A`" rule is unchanged but no longer trusted
+    without verification (`.claude/skills/translate/SKILL.md`).
+  - Documented as a panel guarantee in `CLAUDE.md`. No config or schema change; behavior is additive
+    and non-breaking (a clean single-agent run commits exactly as before).
+
 ## [1.0.0] — 2026-08-03
 
 **First stable release.** This is a **stability milestone, not a breaking change** — nothing about
@@ -306,7 +327,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/roshaw/claude-translation-agency/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.11.0...v1.0.0
 [0.11.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.9.0...v0.10.0

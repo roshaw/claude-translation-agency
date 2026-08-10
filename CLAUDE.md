@@ -1,6 +1,6 @@
 # Translation Agency
 
-**Version 1.0.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
+**Version 1.1.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
 
 A reusable, project-agnostic translation system: ready-to-use **skills** and **agents** that
 translate **any project or set of files into any language**, with a domain **specialization** you
@@ -236,6 +236,10 @@ do-not-translate items recorded in the project's `notes.md`.
   surfaces every still-partial language.
 - **Never changes source facts, never touches the source files, never pushes.** It translates copy;
   it doesn't add keys, edit numbers, or deploy.
+- **Commit scope is exactly the run's own files — nothing else.** When it commits (`inplace`/`catalog`
+  git runs, opt-in), it stages by name only the files the panel wrote, verifies the staged set
+  equals the Lead's report file list, and refuses to commit a superset — so a concurrent agent's
+  unrelated, half-ready file can never be swept into a translation commit.
 
 ## Testing
 
@@ -311,7 +315,7 @@ Translation Agency/
 ├── README.md                     # GitHub landing page
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 1.0.0
+├── VERSION                       # 1.1.0
 ├── .gitignore
 ├── package.json                  # npm test / npm start → tests/check.mjs; dev dep ajv
 ├── translation.config.json      # default settings (source/target langs, specialization, output, formats)

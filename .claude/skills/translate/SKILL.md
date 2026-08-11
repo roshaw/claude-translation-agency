@@ -348,16 +348,40 @@ small correction sets (returns large ones to Senior, cycle-cap 2), runs the fina
 
 ## Step 6.5 — Completeness done-gate (runs every pass)
 
-Before finishing, positively confirm coverage — don't assume it. For each target language, verify
-every translatable file that has a source counterpart now exists and is not byte-identical
-placeholder. For mirrored-tree/`.po` formats, one `Glob` per format compared against the language
-set catches missing target files; for catalogs, the Lead's leftover sweep covers placeholders.
-- **`--full`** → any incomplete `(language, file)` is IN SCOPE: build it into more batches and loop
-  Step 3→6 until clean, or report `NEEDS ATTENTION` with the exact missing list (and don't advance
-  the marker). A `--full` run must never finish with a silent gap.
+Before finishing, positively confirm coverage — don't assume it. Confirm it on **three** axes, all
+deterministic (`Glob`/`Read` + compare **in context**, no shell loops): the target files exist, they
+carry **every source key** (key-set parity), and their values aren't untranslated placeholders.
+
+1. **File coverage (all formats).** For each target language, verify every translatable file that has
+   a source counterpart now exists. For mirrored-tree/`.po` formats, one `Glob` per format compared
+   against the language set catches missing target files.
+2. **Key-set parity (catalog formats — `.json`/`.ts`/`.js`/`.arb`/`.yaml`/`.resx`/`.strings`, and
+   `.po`/`.pot`).** A catalog file existing and passing the Lead's leftover sweep does **not** prove
+   it is complete: a key that is *entirely absent* from the target carries no value, so the C1 /
+   leftover ("Cyrillic value") sweep — which only inspects values that are present — structurally
+   cannot see it. Close that gap here. For each target catalog:
+   - `Read` the **source** catalog and the **target** catalog and reduce each to its set of dotted key
+     paths (for `.po`, the unit is the `msgid`, keeping `msgctxt` where present; keep array indices in
+     the path — `steps.0.title` — so array-length drift also surfaces).
+   - Compare the two sets in context. **Any key in the source set but absent from the target set is a
+     missing-key gap** — the translation is incomplete even though the file exists and has zero
+     leftovers. Also treat a key whose target value is empty/whitespace as a gap.
+   - This is **source→target only**, matching the gate's contract (it checks the run's languages
+     against the source). The inverse — a key present in a *target* but not the source — is an
+     orphan/source gap `/translate` can't fill (it never edits the source); note it if you notice it,
+     but don't try to auto-fix it, and point to `/translate-audit` for the symmetric union check.
+3. **Placeholders (catalogs).** The Lead's leftover sweep already covers present-but-untranslated
+   values; trust the report for that.
+
+Then act by scope:
+- **`--full`** → any missing file, **missing/empty key**, or placeholder is IN SCOPE: build the
+  affected `(language, file, keys)` into more batches and loop Step 3→6 until parity holds, or report
+  `NEEDS ATTENTION` with the exact missing-key list per language (and don't advance the marker). A
+  `--full` run must never finish with a silent gap — **including a silently dropped key**.
 - **Incremental/`--files`** → legitimately scoped; don't block on out-of-scope gaps, but **surface
   every still-incomplete language prominently** in the Step 9 report (e.g. `⚠ Still partial (not in
-  this run's scope): pt-BR — 12 content files missing. Run /translate --full to clear.`).
+  this run's scope): pt-BR — 12 keys missing in locales/pt-BR.json, 3 content files missing. Run
+  /translate --full to clear.`).
 
 ## Step 7 — Commit or deliver
 
@@ -429,8 +453,9 @@ Print a tight summary from the Lead's report + gates + commit:
 - **Per-batch outcomes** (condensed): ACCEPTED / ACCEPTED WITH N INLINE FIXES / RETURNED+re-reviewed / OPEN QUESTION.
 - **Sweeps** S1/S2/S3 totals (or n-a for plain text).
 - **Flags by category** C1–C7 + S1–S3.
-- **Completeness gate** (MANDATORY line, even on a clean run — state "all target languages complete"
-  positively, or `⚠ Still partial: <lang> — <what's missing>`).
+- **Completeness gate** (MANDATORY line, even on a clean run — covers file coverage **and** catalog
+  key-set parity; state "all target languages complete (key-set parity + file coverage)" positively,
+  or `⚠ Still partial: <lang> — <what's missing>`).
 - **Terminology research**: ran (N terms — X high / Y medium / Z low confidence) / reused saved
   glossary / skipped (state which). Glossary: `projects/<slug>/glossary.csv`.
 - **Queries (async, non-blocking)**: N items logged to `projects/<slug>/queries-<date>.md` for your

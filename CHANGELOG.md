@@ -9,6 +9,30 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [1.1.1] — 2026-08-11
+
+### Fixed
+- **`/translate` completeness gate now does a source→target key-set parity check for catalog
+  formats**, closing a blind spot where a key *entirely absent* from a target catalog shipped
+  silently. The gate previously confirmed catalog completeness on only two axes — the target file
+  exists (`Glob`) and its present values aren't source-language leftovers (the Lead's C1 "Cyrillic
+  value" sweep). A dropped key carries no value, so the leftover sweep — which only inspects values
+  that are present — structurally could not see it: the file existed, every present value was clean,
+  and the gate went green on an incomplete translation. This is the drift that had to be caught by
+  hand.
+  - **`/translate` Step 6.5** gains a third, deterministic axis for catalog formats
+    (`.json`/`.ts`/`.js`/`.arb`/`.yaml`/`.resx`/`.strings`, `.po`/`.pot`): `Read` the source and
+    target catalogs, reduce each to its set of dotted key paths (msgid for `.po`; array indices kept
+    so length drift also surfaces), and compare **in context** (no shell — matches the toolkit's Bash
+    discipline). Any key in the source set but absent from the target — or present but empty — is a
+    gap. Scoped **source→target only** (matching the gate's contract); the inverse orphan/source-gap
+    case stays `/translate-audit`'s symmetric job. `--full` treats a missing/empty key as in-scope
+    (loop or `NEEDS ATTENTION` with the exact per-language missing-key list); incremental/`--files`
+    surfaces it prominently (`.claude/skills/translate/SKILL.md`).
+  - The mandatory Step 9 completeness line now states "key-set parity + file coverage" explicitly.
+  - Docs-only change to the skill; no config or schema change, and no change to the deterministic
+    (`npm test`) or eval-assert harnesses.
+
 ## [1.1.0] — 2026-08-10
 
 ### Added
@@ -327,7 +351,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/roshaw/claude-translation-agency/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/roshaw/claude-translation-agency/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.11.0...v1.0.0
 [0.11.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.10.0...v0.11.0

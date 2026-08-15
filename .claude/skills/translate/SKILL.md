@@ -31,7 +31,7 @@ Lead handles all worker spawns and reviews. The single final build/verify runs h
 /translate <path>                  # shorthand for --path <path> (a folder) or --files <path> (a file/glob)
 /translate --to <langs>            # e.g. --to de,fr,pt-BR  (overrides configured targets for this run)
 /translate --from <lang>           # override the detected/configured source language
-/translate --domain <name>         # specialization: general | technical | marketing | legal | <custom> (default from config, else general)
+/translate --domain <name>         # specialization: general | technical | marketing | legal | finance | medical | ecommerce | travel | government | scientific | <custom> (default from config, else general). Layer with a comma-list: --domain technical,finance (first = primary)
 /translate --formality <f>         # register for the whole run: formal | informal | auto (overrides config.formality; default auto)
 /translate --files <glob|paths>    # translate an explicit set (a folder, a glob, named files)
 /translate --out <mode>            # output layout: inplace (default) | tree | catalog  (see Step 0.5)
@@ -71,6 +71,24 @@ Otherwise default to **`general`**. The chosen module lives at `specializations/
 passed to the Lead + Senior so their terminology (C2) and framing (C6) checks match the material.
 If `--domain <name>` names a module that doesn't exist, list the available modules and ask which to
 use (or offer to run `general`).
+
+**Layering (2+ domains).** The specialization may be a **list** — a comma-list on the flag
+(`--domain technical,finance`) or a JSON array in config (`"specialization": ["technical", "finance"]`).
+Resolve it to an ordered list of module names (flag wins over config, as usual; a single name stays a
+one-element list). Then:
+- Validate every named module exists (`specializations/<name>.md`); if any is missing, list the
+  available modules and ask — don't silently drop it.
+- The **first** module is **primary**; the rest are secondary layers.
+- Pass the whole ordered list to the Lead (`specialization` = the list, `specialization_path` = the
+  ordered list of module paths — see Step 3). The Lead concatenates the modules into one layered brief,
+  prefixed with a precedence preamble: *"You are operating under N layered specializations, primary
+  first: [names]. The primary owns register/framing (C6) on any conflict. Every layer's terminology
+  (C2) and verbatim/do-not-translate (C3) rules apply — union them. If two layers give directly
+  conflicting framing that the primary order doesn't settle, translate to the safer reading and log a
+  query (high-stakes)."*
+- Keep it to **compatible** domains. If the user layers opposites (e.g. `marketing` + `legal`), warn
+  once that their framing rules conflict and suggest separate scoped runs, then proceed primary-first if
+  they confirm.
 
 ## What this skill does NOT do
 
@@ -276,8 +294,9 @@ output_mode: tree | inplace | catalog
 output_dir: translations            # for tree mode
 source_lang: <lang>
 target_langs: [<...>]
-specialization: <name>
-specialization_path: specializations/<name>.md
+specialization: <name>                              # or an ORDERED list [primary, ...] when layering
+specialization_path: specializations/<name>.md      # or the ordered list of module paths when layering;
+                                                     # the Lead loads all, primary first (see "Layering" in Step 1)
 context: <config.context — inline text or the contents of translation-context.md; the product's
           purpose/audience/register, so the panel picks the right sense of each word>
 formality: { <lang>: formal | informal | auto, ... }   # resolved PER target language (see below)
@@ -473,7 +492,7 @@ Always end the report with these two footer lines, verbatim:
    also appears as a commit trailer (Step 7).
 2. **Disclaimer** (point-of-use reminder, not optional): `⚠ AI-generated translation — review before
    publishing; human sign-off recommended for legal/medical/financial/safety-critical content.` If the
-   run's specialization is a high-stakes / safety-critical domain — `legal`, `banking`, or `medical`,
+   run's specialization is a high-stakes / safety-critical domain — `legal`, `finance`, or `medical`,
    or any custom module of comparable stakes (health, financial, legal, safety) — make it a full
    sentence and bold it, since the stakes are higher.
 

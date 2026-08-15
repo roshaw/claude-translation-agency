@@ -28,7 +28,7 @@ source_lang: en
 target_lang: <e.g. de>            # one target language per batch
 files: [<target paths to write — in "tree" mode these are the copies under translations/<lang>/…>]
 source_files: [<paths to READ the source from — in "tree"/"inplace" mode these differ from files>]
-specialization_path: specializations/<name>.md
+specialization_path: specializations/<name>.md   # may be an ORDERED list of module paths when layering (primary first) — read ALL
 context: <the product's purpose/audience/register — what it IS. Use it to pick the right SENSE of a
           word (e.g. "Book" = reserve vs. the object) before translating.>
 formality: formal | informal | auto     # requested register for THIS batch's target language.
@@ -60,7 +60,7 @@ terminology and don't block the run.
 2. **The `glossary_path`** — the run glossary from the research pass. It is the authority on which
    term of art to use per language and which sense a word takes; follow it over your own instinct and
    over the specialization on any term it defines.
-3. **The specialization module** at `specialization_path` (default `specializations/general.md`) — its terminology, verbatim rules, tone, and escalation triggers govern this pass where the glossary is silent.
+3. **The specialization module(s)** at `specialization_path` (default `specializations/general.md`) — its terminology, verbatim rules, tone, and escalation triggers govern this pass where the glossary is silent. **If `specialization_path` is a list (layered domains), read every module, primary first**, and apply the union of their terminology and verbatim rules; where two layers give conflicting tone/framing, the **primary** (first) wins.
 3b. **The `do_not_translate` rules** (from the brief) — the operator's manual pass-through list. Any value a rule covers (a colour/size token, a raw user-entered string, a named placeholder, etc.) stays **byte-identical to the source** — treat it exactly like an identity token (principle 3): translate around it, never it. Note in your report anything you deliberately left verbatim under a rule.
 4. **The project conventions** at `project_conventions` if supplied — source-of-truth language, placeholder syntax, brand/do-not-translate list, file-format rules.
 5. **The source file(s)** — read from `source_files` (the source language is your contract). In `tree`/`inplace` mode this path differs from the file you write.

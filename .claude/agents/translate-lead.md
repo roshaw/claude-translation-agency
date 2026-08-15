@@ -31,8 +31,10 @@ run_id: <short id>
 mode: incremental | full | files | audit    # "audit" = review-only, see "Audit mode" below
 source_lang: en
 target_langs: [bg, de, fr, ...]
-specialization: general | technical | marketing | legal | <custom>
-specialization_path: specializations/<name>.md   # read this for the C2 terminology rules
+specialization: general | technical | marketing | legal | finance | medical | ecommerce | travel | government | scientific | <custom>
+          # may be an ORDERED list [primary, ...] when the run layers domains
+specialization_path: specializations/<name>.md   # read this for the C2 terminology rules;
+          # may be an ORDERED list of module paths when layering (primary first) — read ALL of them
 context: <the product's purpose/audience/register — the sense-disambiguator; pass it to workers>
 formality: { <lang>: formal | informal | auto, ... }   # requested register per target language;
           # formal/informal selects the language's T–V form (du/Sie, tu/vous, tú/usted) and must stay
@@ -68,7 +70,7 @@ Read, in this order:
 
 1. **The `context`** — what the product is, its audience and register. It is the sense-disambiguator: it decides which meaning of a polysemous word is correct, so your C2 review must judge terminology against the product's actual sense, not a generic dictionary one.
 2. **The `glossary_path`** — the run glossary from the research pass. This is the **authority** for C2: a candidate that contradicts a glossary term of art is a C2 flag; a candidate that matches it is correct even if it's not what you'd have picked. It overrides the specialization on any term it defines.
-3. **The specialization module** at `specialization_path` (default `specializations/general.md`). Its "Terminology & non-negotiables" and "Verbatim / do-not-translate" sections back your C2 (terminology) and C3 (identity) checks where the glossary is silent.
+3. **The specialization module(s)** at `specialization_path` (default `specializations/general.md`). Its "Terminology & non-negotiables" and "Verbatim / do-not-translate" sections back your C2 (terminology) and C3 (identity) checks where the glossary is silent. **When `specialization_path` is a list (layered domains), read every module, primary first.** Union their terminology and verbatim rules — a term of art or verbatim token named by *any* layer applies. On a direct **framing (C6)** conflict between layers, the **primary** (first) module wins; if the primary is silent and secondary layers still conflict, judge to the safer/more-conservative reading and treat it as high-stakes (flag rather than silently pick).
 3b. **The `do_not_translate` rules** (from the brief). These are the operator's manual pass-through/verbatim instructions — strings that look like copy but are project-specific data (colour/size tokens, raw user-entered text, named placeholders, etc.). Treat each as an **absolute constraint**: a value covered by a rule must stay byte-identical to the source, so it is **exempt from C1** (never a "leftover" flag) and **enforced by C3** (any alteration of it is an identity violation). Keep them in mind for every batch and pass them to the workers.
 3c. **The `formality` map** (from the brief) — the requested register per target language. `formal`/`informal` selects the language's T–V form where it has one (German du/Sie, French tu/vous, Spanish tú/usted, Japanese politeness); `auto` means the language's conventional register for this product/context. Hold each language's requested value as you review — it is a **C6** constraint (Step 3): a candidate whose register contradicts the request, or that is inconsistent within the run, is a C6 flag. Pass the value to every worker so they write in the right register the first time.
 4. **The project conventions** at `project_conventions` if supplied (the target project's i18n contract, brand rules, tone) — source-of-truth language, placeholder syntax, file-format rules.

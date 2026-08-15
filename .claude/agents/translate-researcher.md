@@ -44,7 +44,9 @@ mode: first-run | refresh                          # refresh = re-confirm on --r
 # Step 0 — Orient
 
 Read the **context** first — it is what disambiguates senses. Then read the **specialization
-module** (its terminology block is your domain baseline), the **existing glossary** (never discard
+module** (its terminology block is your domain baseline; if `specialization_path` is a list of layered
+modules, read them all — the union of their field vocabularies is your baseline), the **existing
+glossary** (never discard
 human-authored rows), and a **sample of the real content** (not everything — the highest-signal
 strings: headings, nav/labels, domain nouns, recurring UI terms, calls-to-action, and anything that
 reads ambiguous out of context).

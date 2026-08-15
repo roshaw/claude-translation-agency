@@ -1,19 +1,22 @@
-# banking specialization
+# finance specialization
 
-Retail, commercial, and investment **banking / financial-services** copy — account and card products,
-payments and transfers, lending and mortgages, statements and disclosures, online/mobile banking UI,
-KYC/AML and regulatory notices, fees and rates, and investment/deposit products. A high-constraint
-domain: a mistranslated rate, fee, or regulatory term isn't just awkward — it can misstate a
-financial obligation, a legal disclosure, or a regulated product feature.
+**Finance / financial-services** copy across the whole sector — retail/commercial/investment
+**banking** (accounts and cards, payments and transfers, lending and mortgages, statements and
+disclosures, online/mobile banking UI), **investments and markets** (brokerage, funds, trading,
+portfolios), **insurance** (policies, premiums, claims, cover terms), **corporate/personal finance**
+(accounting, tax, payroll, budgeting), and **fintech/crypto** (wallets, exchanges, tokens) — plus the
+KYC/AML and regulatory notices, fees, and rates around all of them. A high-constraint domain: a
+mistranslated rate, fee, or regulatory term isn't just awkward — it can misstate a financial
+obligation, a legal disclosure, or a regulated product feature.
 
 ## When to use
 
-The material describes or transacts money: bank/card products, payments, loans, interest rates and
-fees, balances and statements, or the compliance/disclosure language around them (terms &
-conditions, risk warnings, KYC/AML, deposit-guarantee notices). Choose this over `general` or
-`legal` whenever banking products, rates/fees, or financial-regulatory framing appear. When unsure
-whether copy is "financial enough," use this — a wrong financial term shipping is more expensive than
-a brief lookup.
+The material describes or transacts money: bank/card products, investments and trading, insurance
+cover, payments, loans, interest rates and fees, balances and statements, or the compliance/disclosure
+language around them (terms & conditions, risk warnings, KYC/AML, deposit-guarantee notices). Choose
+this over `general` or `legal` whenever financial products, rates/fees, or financial-regulatory framing
+appear. When unsure whether copy is "financial enough," use this — a wrong financial term shipping is
+more expensive than a brief lookup.
 
 ## Terminology & non-negotiables (feeds C2)
 

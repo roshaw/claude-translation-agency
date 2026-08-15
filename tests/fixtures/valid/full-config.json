@@ -1,7 +1,7 @@
 {
   "sourceLang": "en",
   "targetLangs": ["de", "fr", "es", "pt-BR"],
-  "specialization": "banking",
+  "specialization": "finance",
   "glossary": "projects/myapp/glossary.csv",
   "context": "A retail banking app for consumers; formal, trustworthy register.",
   "formality": "formal",

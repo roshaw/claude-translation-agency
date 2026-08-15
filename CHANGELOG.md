@@ -9,6 +9,36 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [2.0.0] — 2026-08-15
+
+### Changed
+- **BREAKING — the `banking` specialization is renamed to `finance` and broadened.** The module
+  (`specializations/finance.md`) now covers the whole financial-services sector — banking, investments
+  and markets, insurance, corporate/personal finance, and fintech/crypto — not just retail banking,
+  while keeping every money-is-verbatim / never-soften-risk rule. **Migration:** replace
+  `--domain banking` and `"specialization": "banking"` with `finance`; the old value no longer resolves
+  to a module.
+
+### Added
+- **`medical` specialization** (`specializations/medical.md`): a high-constraint, safety-critical
+  healthcare / life-sciences module — INN vs brand drug names, dosages and units byte-identical (never
+  converted), ICD/SNOMED/ATC/trial identifiers verbatim, warnings and contraindications never softened,
+  no medical advice implied.
+- **Four more domain modules**: `ecommerce` (retail/storefront — SKUs, sizes, prices verbatim, CTAs
+  transcreated, policy limits never overstated), `travel` (booking/hospitality — times, dates, fares
+  and codes verbatim, travel-sense disambiguation, fare/cancellation rules never softened),
+  `government` (public-sector — official designations and references verbatim, mandated plain language,
+  obligations/rights/deadlines never altered), and `scientific` (academic — numbers, units,
+  nomenclature and citations verbatim, standardized terms of art, hedging/certainty preserved).
+- **Layered specializations** — a run can now combine two or more domains. `specialization` accepts an
+  array (`["technical", "finance"]`) as well as a string, and `--domain` accepts a comma-list
+  (`--domain technical,finance`). The first module is **primary** (it wins tone/framing conflicts);
+  every layer contributes its terminology (C2) and verbatim (C3) rules, unioned. The Lead concatenates
+  the modules into one layered brief with a precedence preamble and flags framing conflicts primacy
+  can't settle. Schema (`specialization` is now `string | string[]`, `minItems: 1`), the `/translate`
+  resolution step, the Lead/Senior/Researcher briefs, and the docs are updated; new valid + invalid
+  schema fixtures cover the array form.
+
 ## [1.1.1] — 2026-08-11
 
 ### Fixed
@@ -351,7 +381,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/roshaw/claude-translation-agency/compare/v1.1.1...v2.0.0
 [1.1.1]: https://github.com/roshaw/claude-translation-agency/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/roshaw/claude-translation-agency/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/roshaw/claude-translation-agency/compare/v0.11.0...v1.0.0

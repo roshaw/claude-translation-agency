@@ -18,7 +18,7 @@ locale_meta: { locale: "de-DE", decimal: ",", group: "." }   # DATA — set, do 
 do_not_translate: [<manual pass-through rules — values that look like copy but are data (colour/size
           tokens, raw user text, named placeholders); leave any covered value byte-identical>]
 formality: formal | informal | auto     # requested register for this target language; match it in chrome
-specialization_path: specializations/<name>.md   # you skip its terminology block; you never translate terms
+specialization_path: specializations/<name>.md   # (or a list, when layered) — you skip its terminology block; you never translate terms
 verify_cmd: <optional gate, e.g. "npx tsc --noEmit"; empty for plain catalogs>
 ```
 

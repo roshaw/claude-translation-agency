@@ -1,6 +1,6 @@
 # Translation Agency
 
-**Version 1.1.1** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
+**Version 2.0.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
 
 A reusable, project-agnostic translation system: ready-to-use **skills** and **agents** that
 translate **any project or set of files into any language**, with a domain **specialization** you
@@ -74,6 +74,15 @@ the panel enforces, what stays verbatim, and what framing to preserve.
 Pick one, resolved in this order (later wins): `/translate --domain <name>` → `translation.config.json
 → specialization` → default **`general`**.
 
+You can also **layer two or more** modules for a surface that genuinely spans domains (a fintech app
+that is both `technical` and `finance`): pass a comma-list `--domain technical,finance` or a JSON array
+`"specialization": ["technical", "finance"]`. The **first** module is primary (it wins on any
+tone/framing conflict); every layer contributes its terminology (C2) and verbatim (C3) rules, unioned.
+The skill concatenates the modules into one layered brief with a precedence preamble; if two layers
+give directly conflicting framing that primacy doesn't settle, the panel treats the string as
+high-stakes and flags it. Layer compatible domains only — don't stack opposites like `marketing` +
+`legal`.
+
 Seeded presets (in `specializations/`):
 
 | Domain | For |
@@ -82,11 +91,17 @@ Seeded presets (in `specializations/`):
 | `technical` | Software/dev material, API docs, error strings, WordPress theme/plugin strings. |
 | `marketing` | Brand/campaign copy — transcreation, brand voice, punchy CTAs. |
 | `legal` | Reference example (the domain this was extracted from) — citations verbatim, terms of art, "reference not mandatory" framing. |
-| `banking` | Banking/financial-services — money, rates, and identifiers verbatim; market terms of art; obligation/risk framing never softened; disclosures preserved. |
+| `finance` | Finance/financial-services — money, rates, and identifiers verbatim; market terms of art; obligation/risk framing never softened; disclosures preserved. |
+| `medical` | Healthcare/life-sciences — drug names, dosages, and units verbatim; clinical terms of art; warnings/contraindications never softened; no medical advice implied. |
+| `ecommerce` | Retail/storefront — SKUs, sizes, and prices verbatim; retail terms of art; CTAs transcreated; policy limits and claims never overstated. |
+| `travel` | Travel/hospitality — times, dates, fares, and codes verbatim; travel-sense disambiguation; fare/cancellation rules never softened. |
+| `government` | Public-sector — official designations and references verbatim; mandated plain language; obligations, rights, and deadlines never altered. |
+| `scientific` | Scientific/academic — numbers, units, nomenclature, and citations verbatim; standardized terms of art; hedging and certainty preserved exactly. |
 
 **Add your own** by dropping a `specializations/<name>.md` (skeleton in `specializations/README.md`)
-and running `/translate --domain <name>` — no code changes. A project **glossary** (config
-`glossary`) overrides any specialization on the specific terms it defines.
+and running `/translate --domain <name>` — no code changes (a custom module can be layered too:
+`--domain <name>,finance`). A project **glossary** (config `glossary`) overrides any specialization —
+single or layered — on the specific terms it defines.
 
 ## Context & terminology research
 
@@ -315,7 +330,7 @@ Translation Agency/
 ├── README.md                     # GitHub landing page
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 1.1.1
+├── VERSION                       # 2.0.0
 ├── .gitignore
 ├── package.json                  # npm test / npm start → tests/check.mjs; dev dep ajv
 ├── translation.config.json      # default settings (source/target langs, specialization, output, formats)
@@ -349,7 +364,12 @@ Translation Agency/
 │   ├── technical.md
 │   ├── marketing.md
 │   ├── legal.md                  # ported reference example
-│   └── banking.md                # financial-services domain
+│   ├── finance.md                # financial-services domain
+│   ├── medical.md                # healthcare / life-sciences domain
+│   ├── ecommerce.md              # retail / storefront domain
+│   ├── travel.md                 # travel / hospitality domain
+│   ├── government.md             # public-sector domain
+│   └── scientific.md             # scientific / academic domain
 └── projects/
     ├── README.md                 # registry + memory contract
     ├── registry.json             # index of every project translated

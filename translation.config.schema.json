@@ -20,8 +20,11 @@
       "description": "Language codes to translate INTO, e.g. ['de', 'fr', 'es']. Locale forms like 'pt-BR' or 'de_DE' are fine."
     },
     "specialization": {
-      "type": "string",
-      "description": "The domain profile the translator panel loads for terminology and framing. Built-ins: general (default) | technical | marketing | legal | banking. Not enum-restricted — a custom specializations/<name>.md module is also a valid value. Override per run with /translate --domain <name>."
+      "oneOf": [
+        { "type": "string" },
+        { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+      ],
+      "description": "The domain profile(s) the translator panel loads for terminology and framing. Either a single module name (string) or, to LAYER domains, an array of names — the first is primary (it wins tone/framing conflicts), and every layer contributes its terminology + verbatim rules. Built-ins: general (default) | technical | marketing | legal | finance | medical | ecommerce | travel | government | scientific. Not enum-restricted — a custom specializations/<name>.md module is also a valid value. Override per run with /translate --domain <name> (or --domain a,b to layer)."
     },
     "glossary": {
       "type": "string",

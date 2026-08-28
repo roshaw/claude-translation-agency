@@ -1,0 +1,13 @@
+{
+  "gates": [
+    {
+      "name": "brand-compliance",
+      "skill": "brand-check",
+      "with": { "files": "{files}", "lang": "{lang}", "strictness": "high" },
+      "onFail": "refine",
+      "maxRetries": 2,
+      "fallback": "accept",
+      "out": ".translate-gate/{lang}.json"
+    }
+  ]
+}

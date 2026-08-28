@@ -105,6 +105,57 @@
       "type": "string",
       "description": "Build/verify command run once at the end of the run. Leave empty for plain document sets."
     },
+    "gates": {
+      "type": "array",
+      "description": "Project-defined quality GATES run AFTER the translator panel signs off and BEFORE the final build/deliver, on the run's own output files (per target language). Each gate runs a project-owned check (e.g. plagiarism) that emits a findings verdict (status/disposition/findings); on failure the run applies the gate's onFail policy. Distinct from verifyCmd/buildCmd, which only answer 'does it still build'. See CLAUDE.md 'Project gates'.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name"],
+        "oneOf": [
+          { "required": ["run"] },
+          { "required": ["skill"] }
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Identifier for the gate, shown in the run report and the failure prompt (e.g. 'plagiarism')."
+          },
+          "run": {
+            "type": "string",
+            "description": "Shell command that performs the check, run as a subprocess. Placeholders {files} (the run's output files for the language), {lang}, and {out} (the verdict path) are substituted. Must write the findings verdict JSON to {out} (or print it to stdout). Mutually exclusive with 'skill'; portable to any platform and works headless."
+          },
+          "skill": {
+            "type": "string",
+            "description": "Name of a project skill (in the TARGET project's .claude/skills/) invoked via the Skill tool to perform the check. Must produce the same findings verdict (returned or written to 'out'). Mutually exclusive with 'run'. Claude-Code/Cowork only; needs the agent available (not for headless runs)."
+          },
+          "with": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Arguments passed to the skill (skill gates only). Placeholders {files}/{lang}/{out} are substituted in string values."
+          },
+          "onFail": {
+            "type": "string",
+            "enum": ["ask", "refine", "retry", "revert"],
+            "description": "What to do when the gate fails. 'ask' (default) surfaces the findings and lets the operator choose how to continue; 'refine' re-translates the flagged passages in place with the findings as constraints, then re-gates (up to maxRetries); 'retry' reverts the whole run and does a fresh run informed by the findings (up to maxRetries); 'revert' undoes the run's files and stops. An auto mode that exhausts maxRetries falls back to 'ask' (or 'fallback' when headless)."
+          },
+          "maxRetries": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Retry budget for 'refine'/'retry' (ignored for 'ask'/'revert'). Default 1. On exhaustion the run stops auto-remediating and asks (or applies 'fallback' headless)."
+          },
+          "fallback": {
+            "type": "string",
+            "enum": ["revert", "accept"],
+            "description": "Deterministic behavior when 'ask' cannot prompt (headless/non-interactive run) or an auto mode exhausts retries with no operator: 'revert' (default) undoes the run and reports; 'accept' ships the gate-failing output and reports."
+          },
+          "out": {
+            "type": "string",
+            "description": "Path the gate writes its verdict JSON to; {lang} is substituted. Default '.translate-gate/{lang}.json'."
+          }
+        }
+      }
+    },
     "creditInCommit": {
       "type": "boolean",
       "description": "Optional attribution in git history. Default false. When true, and only when the run actually commits (inplace/catalog mode in a git repo), the translation commit gets a 'Translated-with: Translation Agency <version> (<repo URL>)' trailer — nothing is ever written into the translated files. The run report always credits the tool regardless."

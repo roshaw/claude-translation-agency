@@ -1,0 +1,9 @@
+{
+  "gates": [
+    {
+      "name": "plagiarism",
+      "run": "node gate.mjs --lang {lang} --out {out} --files {files}",
+      "onFailure": "revert"
+    }
+  ]
+}

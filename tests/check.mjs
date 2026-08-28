@@ -6,6 +6,7 @@
 // SOFT checks print a WARNING and never fail the run.
 
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -431,6 +432,78 @@ const version = read('VERSION').trim();
         `flag did not cleanly drop only missing-in-source (${withGap && withGap.length} -> ${noGap && noGap.length})`
     );
   }
+}
+
+// ===========================================================================
+// (g3) GATE SKELETON SELF-TEST  [HARD]
+// ===========================================================================
+// Proves the reference PROJECT GATE (examples/gate-skeleton/gate.mjs) still emits
+// the frozen findings-verdict contract — deterministically, with no LLM. Run it on
+// a file CONTAINING the demo marker (must -> status "fail" with a well-formed
+// finding) and on a CLEAN file (must -> status "pass" with an empty findings array).
+// If the skeleton drifts from the contract, this bites.
+{
+  const GATE = path.join(ROOT, 'examples', 'gate-skeleton', 'gate.mjs');
+  let tmpDir = null, setupErr = null;
+  try {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'ta-gate-'));
+  } catch (e) {
+    setupErr = e.message;
+  }
+
+  // Run the gate on a file; parse the verdict from --out (falls back to stdout).
+  const runGate = (contents) => {
+    const src = path.join(tmpDir, 'sample.md');
+    const outPath = path.join(tmpDir, 'verdict.json');
+    fs.writeFileSync(src, contents);
+    try { fs.rmSync(outPath, { force: true }); } catch { /* first run */ }
+    const stdout = execFileSync('node', [GATE, '--lang', 'de', '--out', outPath, '--files', src], { encoding: 'utf8' });
+    const raw = fs.existsSync(outPath) ? fs.readFileSync(outPath, 'utf8') : stdout;
+    return JSON.parse(raw);
+  };
+
+  if (setupErr) {
+    hard('GATE skeleton self-test', false, `could not create temp dir: ${setupErr}`);
+  } else {
+    // (1) defective file -> status "fail" + >=1 well-formed finding.
+    let failVerdict = null, failErr = null;
+    try {
+      failVerdict = runGate('# Draft\n\nThis paragraph still has a LOREM_PLACEHOLDER left in it.\n');
+    } catch (e) { failErr = e.message; }
+    const goodFinding =
+      failVerdict && Array.isArray(failVerdict.findings) && failVerdict.findings.length >= 1 &&
+      failVerdict.findings.every((f) =>
+        f && ['file', 'passage', 'issue', 'suggestion'].every((k) => typeof f[k] === 'string' && f[k].trim().length > 0));
+    hard(
+      'GATE skeleton flags defect',
+      !failErr && failVerdict && failVerdict.status === 'fail' && goodFinding,
+      failErr ? `errored: ${failErr}` :
+        !failVerdict ? 'no verdict emitted' :
+        failVerdict.status !== 'fail' ? `expected status "fail", got "${failVerdict.status}"` :
+        !goodFinding ? 'fail verdict lacked a finding with non-empty file/passage/issue/suggestion' :
+        `LOREM_PLACEHOLDER -> status "fail" with ${failVerdict.findings.length} well-formed finding(s)`
+    );
+
+    // (2) clean file -> status "pass" + empty findings.
+    let passVerdict = null, passErr = null;
+    try {
+      passVerdict = runGate('# Draft\n\nThis paragraph is clean, natural copy with nothing to flag.\n');
+    } catch (e) { passErr = e.message; }
+    const cleanShape =
+      passVerdict && passVerdict.status === 'pass' &&
+      Array.isArray(passVerdict.findings) && passVerdict.findings.length === 0;
+    hard(
+      'GATE skeleton passes clean file',
+      !passErr && cleanShape,
+      passErr ? `errored: ${passErr}` :
+        !passVerdict ? 'no verdict emitted' :
+        passVerdict.status !== 'pass' ? `expected status "pass", got "${passVerdict.status}"` :
+        !Array.isArray(passVerdict.findings) || passVerdict.findings.length !== 0 ? 'expected empty findings array on pass' :
+        'clean file -> status "pass" with findings []'
+    );
+  }
+
+  try { if (tmpDir) fs.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* best-effort cleanup */ }
 }
 
 // ===========================================================================

@@ -1,0 +1,8 @@
+{
+  "gates": [
+    {
+      "name": "plagiarism",
+      "run": "node examples/gate-skeleton/gate.mjs --lang {lang} --out {out} --files {files}"
+    }
+  ]
+}

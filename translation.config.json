@@ -40,9 +40,12 @@
     "dir": "translations"
   },
 
-  "$comment_gates": "verifyCmd runs per-batch (cheap type/lint check). buildCmd runs once at the end. Leave empty for plain document sets.",
+  "$comment_verify": "verifyCmd runs per-batch (cheap type/lint check). buildCmd runs once at the end. Leave empty for plain document sets.",
   "verifyCmd": "",
   "buildCmd": "",
+
+  "$comment_gates": "PROJECT GATES — project-owned quality checks run AFTER the translator panel signs off and BEFORE the final build/deliver, on the run's own output files (per target language). Use for content policy a generic translator can't self-check, e.g. plagiarism. Each gate object: 'name' (label); EXACTLY ONE of 'run' (a shell command — portable, headless-safe) or 'skill' (a skill in your project's .claude/skills/, invoked via the Skill tool — Claude-only, needs the agent); optional 'with' (args for a skill gate); 'onFail' = ask (default) | refine (patch flagged passages in place, re-gate) | retry (revert the run, then a fresh run informed by the findings) | revert (undo and stop); 'maxRetries' (budget for refine/retry, default 1); 'fallback' = revert (default) | accept, used when 'ask' can't prompt (headless) or retries are exhausted; 'out' = where the gate writes its verdict JSON ({lang} substituted, default .translate-gate/{lang}.json). The gate MUST emit a findings verdict: { \"status\": \"pass\"|\"fail\", \"disposition\": \"refine\"|\"retry\"|\"revert\" (optional hint), \"findings\": [ { \"file\": \"…\", \"passage\": \"…\", \"issue\": \"…\", \"suggestion\": \"…\" } ] }. In 'run', placeholders {files} {lang} {out} are substituted. Leave [] if none. Example: [ { \"name\": \"plagiarism\", \"run\": \"npm run check:plagiarism -- --json --out {out} --files {files}\", \"onFail\": \"ask\", \"maxRetries\": 2, \"fallback\": \"revert\" } ]",
+  "gates": [],
 
   "$comment_creditInCommit": "OPTIONAL attribution in git history. Default false. When true, and only when the run actually commits (inplace/catalog mode in a git repo), the translation commit gets a 'Translated-with: Translation Agency <version> (<repo URL>)' trailer line — nothing is ever written into the translated files themselves. The run report ALWAYS credits the tool regardless of this setting; this flag only controls whether that credit also lands in the commit message. Set it to true if the tool has been helpful and you're happy to give credit in your project's history.",
   "creditInCommit": false,

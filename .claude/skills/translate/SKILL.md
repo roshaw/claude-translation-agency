@@ -36,6 +36,7 @@ Lead handles all worker spawns and reviews. The single final build/verify runs h
 /translate --files <glob|paths>    # translate an explicit set (a folder, a glob, named files)
 /translate --out <mode>            # output layout: inplace (default) | tree | catalog  (see Step 0.5)
 /translate --full                  # translate the ENTIRE translatable surface, not just the diff
+/translate --no-gates              # skip the project gates (config.gates) for this run (see Step 6.7)
 ```
 
 Arguments compose: `/translate --path C:\Projects\MyApp --to de,fr --domain technical`.
@@ -402,6 +403,70 @@ Then act by scope:
   this run's scope): pt-BR — 12 keys missing in locales/pt-BR.json, 3 content files missing. Run
   /translate --full to clear.`).
 
+## Step 6.7 — Project gates (conditional)
+
+Project-owned quality gates that run on the **final, complete** translated output (after the
+completeness gate, before commit/deliver). Skip this whole step if `config.gates` is empty/absent or
+the run passed `--no-gates`. Gates are **distinct from** `verifyCmd`/`buildCmd` (which only prove the
+project still builds) — a gate judges the *content* (e.g. plagiarism) and can drive a remediation
+loop. Never commit/deliver a gate-failing result silently.
+
+**The file ledger.** Every gate acts on the exact set of files this run wrote (the Lead's report file
+list = the Step 7 staging set), grouped per target language. That same ledger is what a revert
+restores. Ensure you have the pre-run state of those files available for revert: in a git run,
+`git restore` handles tracked files and created files are deleted; in a non-git run, rely on the
+Step 1 snapshot of the run's output paths.
+
+For each gate in `config.gates`, then for each target language in the run:
+
+1. **Resolve substitutions**: `{files}` = this run's output files for that language (space-joined),
+   `{lang}` = the language code, `{out}` = the gate's `out` (default `.translate-gate/{lang}.json`).
+2. **Execute the check** (exactly one is set):
+   - **`run`** → one Bash call with the substituted command. The gate writes the verdict JSON to
+     `{out}` (or prints it to stdout).
+   - **`skill`** → invoke it via the Skill tool, passing the substituted `with` args (plus files/lang/
+     out). The skill writes the verdict to `{out}` or returns it as its structured result. (Skill
+     gates need the agent — in a headless run, treat a `skill` gate as unrunnable and apply `fallback`.)
+3. **Read the verdict** (the findings contract):
+   ```json
+   { "status": "pass" | "fail",
+     "disposition": "refine" | "retry" | "revert",   // optional hint from the gate
+     "findings": [ { "file": "translations/de/article-1.md",
+                     "passage": "…the flagged text…",
+                     "issue": "92% similar to source X",
+                     "suggestion": "rephrase to reduce overlap; keep meaning" } ] }
+   ```
+   A missing/invalid verdict is itself a gate failure (surface it, don't silently pass).
+4. **On `status: pass`** → record and continue to the next gate/language.
+5. **On `status: fail`** → apply the gate's `onFail` (default `ask`), scoped to the failing
+   language(s):
+   - **`ask`** (default) — present the findings and let the operator choose, in ONE consolidated
+     `AskUserQuestion`: show the gate name, which language(s) failed (and which passed), and each
+     finding (file · passage · issue · suggestion). Offer: **Refine in place** / **Revert & re-run
+     fresh** / **Revert & stop** / **Accept anyway (override)**, plus a scope sub-choice **just
+     `<lang>`** vs **the whole run** when other languages passed. Execute the chosen disposition below.
+   - **`refine`** — build a remediation batch from the findings: the flagged files, with each
+     `suggestion`/`issue` added as an extra constraint ("reduce overlap, preserve meaning, keep
+     placeholders/identity intact"). Re-dispatch that batch through the Lead (Step 3) — so it re-runs
+     **C1–C7** and any `verifyCmd` on the refined output — then re-run **this gate** on the new output.
+     Loop up to `maxRetries` (default 1). If it still fails after the budget, fall back to `ask` (or
+     `fallback` when headless).
+   - **`retry`** — revert the run's files (whole run) via the ledger, then do a **fresh** run
+     (Step 2→6.5) with the findings folded in as run-level guidance (append to the notes/queries
+     context so the panel avoids the flagged overlap this time). Loop up to `maxRetries`. On exhaustion,
+     fall back to `ask` (or `fallback` when headless).
+   - **`revert`** — restore the run's files from the ledger and **stop**: do not build, commit, or
+     advance the marker. Report the findings and why it stopped.
+6. **Headless / non-interactive** (no operator to prompt): `ask` cannot run, so apply the gate's
+   `fallback` — `revert` (default: undo + report) or `accept` (ship + flag in the report) — and say so.
+   Same fallback when an auto mode (`refine`/`retry`) exhausts `maxRetries` with no operator available.
+7. **Accept / override** (operator chose it, or `fallback: accept`) → proceed to commit/deliver, but
+   the Step 9 report MUST flag the gate as **overridden** with its findings.
+
+A refine/retry loop that changes files re-enters the completeness gate (6.5) for the affected scope
+before this step is considered passed. Record every gate's final outcome (pass / refined-then-passed /
+reverted / overridden, with retry count) for the Step 9 report.
+
 ## Step 7 — Commit or deliver
 
 The translated files are already written on disk (in `tree` mode under
@@ -480,7 +545,9 @@ Print a tight summary from the Lead's report + gates + commit:
 - **Queries (async, non-blocking)**: N items logged to `projects/<slug>/queries-<date>.md` for your
   review whenever you want — or "none". Never block the run on these.
 - **Open questions** to the user (cycle-capped residuals, broken source, suspicious data).
-- **Gates**: verify / build result.
+- **Gates**: verify / build result. **Project gates** (if any ran): per gate + language, the outcome
+  — `pass` / `refined→pass (N retries)` / `reverted` / `⚠ overridden (findings shipped)` / `skipped
+  (--no-gates)`. A reverted or unresolved gate means the run did **not** commit — say so.
 - **Commit** `<hash> <subject>` (not pushed) or "delivered N files" / "no changes".
 - **Marker** advanced/left.
 

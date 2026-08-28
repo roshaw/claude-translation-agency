@@ -1,6 +1,6 @@
 # Translation Agency
 
-**Version 2.0.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
+**Version 2.1.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
 
 A reusable, project-agnostic translation system: ready-to-use **skills** and **agents** that
 translate **any project or set of files into any language**, with a domain **specialization** you
@@ -206,9 +206,9 @@ sync when you add or change a config field.
 All fields optional. Key fields: `projectPath`, `sourceLang`, `targetLangs`, `specialization`,
 `context` (the product's purpose — inline or a `translation-context.md` path), `formality`,
 `doNotTranslate`, `research` (`first-run`|`always`|`off`), `queries` (`report`|`high-stakes`|`off`),
-`glossary`, `include`/`exclude`, `output.mode`, `verifyCmd`/`buildCmd`, `creditInCommit`, and a
-`wordpress` block (`textdomain`, `makeMo`, `makeJson`). Command-line flags override the config for a
-single run.
+`glossary`, `include`/`exclude`, `output.mode`, `verifyCmd`/`buildCmd`, `gates`, `creditInCommit`,
+and a `wordpress` block (`textdomain`, `makeMo`, `makeJson`). Command-line flags override the config
+for a single run.
 
 `formality` sets the register / T–V distinction the panel enforces where a language has one (German
 du/Sie, French tu/vous, Spanish tú/usted, Japanese politeness). It is **either** a string —
@@ -236,6 +236,62 @@ not copy"*, *"raw handwritten-text field values are pass-through"*, *"keep place
 `{id}`, `{remote}` intact"*. For a single fixed **term**, prefer a glossary row with `lang=*`; use
 `doNotTranslate` for patterns, categories, and instructions. The skill also merges in any
 do-not-translate items recorded in the project's `notes.md`.
+
+### Project gates
+
+A **project gate** is a project-owned quality check that judges the *content* of the finished
+translation — the kind of thing a generic translator can't self-verify (plagiarism / overlap with a
+source, readability targets, brand or regulatory compliance). Gates are **distinct from**
+`verifyCmd`/`buildCmd`: those only answer "does the project still build"; a gate answers "is this
+output acceptable" and can drive a remediation loop. The **implementations live in the target
+project**, not in this toolkit — the toolkit defines the contract, runs each gate, and drives what
+happens on failure. The drop-in reference gate is `examples/gate-skeleton/` (a `run` command gate:
+copy it into your project, replace the one check, point `gates` at it).
+
+Gates run in **`/translate` Step 6.7** — on the run's final, complete output, **after** the
+completeness gate and **before** the build/deliver step, per target language. `/translate --no-gates`
+skips the whole stage for a run.
+
+`gates` is an array; each gate object is:
+
+    { "name": "plagiarism",              // label, shown in the report + failure prompt
+      "run":  "…{files} {lang} {out}…",  // EXACTLY ONE of run / skill
+      "skill": "<name>", "with": { … },  // skill in the TARGET project's .claude/skills/
+      "onFail": "ask",                   // ask (default) | refine | retry | revert
+      "maxRetries": 1,                   // budget for refine/retry (default 1)
+      "fallback": "revert",              // revert (default) | accept — used headless / on exhaustion
+      "out": ".translate-gate/{lang}.json" }  // where the verdict is written (default)
+
+`run` is a shell command (portable, headless-safe); `skill` is a skill in the target project's
+`.claude/skills/` (Claude-only, can reason). Exactly one is set. In `run`, the placeholders `{files}`
+(the run's output files for that language, space-joined), `{lang}`, and `{out}` are substituted.
+
+Every gate emits a **findings verdict** — written to `{out}` or printed to stdout:
+
+    { "status": "pass" | "fail",
+      "disposition": "refine" | "retry" | "revert",   // optional hint from the gate
+      "findings": [ { "file": "translations/de/article-1.md",
+                      "passage": "…the flagged text…",
+                      "issue": "92% similar to source X",
+                      "suggestion": "rephrase to reduce overlap; keep meaning" } ] }
+
+`status` is the only field the toolkit needs; `findings` (required on fail) power both the operator
+prompt and the `refine` remediation constraints. A missing/invalid verdict is itself a failure.
+
+On `status: fail` the run applies the gate's `onFail`, scoped to the failing language(s):
+
+- **`ask`** (default) — one consolidated prompt showing the gate, which language(s) failed (and which
+  passed), and each finding; the operator picks **Refine in place** / **Revert & re-run fresh** /
+  **Revert & stop** / **Accept anyway (override)**, plus a **just `<lang>`** vs **whole-run** scope.
+- **`refine`** — re-translate the flagged passages in place (through the panel, re-running C1–C7),
+  then re-gate; loop up to `maxRetries`.
+- **`retry`** — revert the whole run, then a fresh run informed by the findings; loop up to `maxRetries`.
+- **`revert`** — undo the run's files and stop.
+
+In a **headless / non-interactive** run `ask` can't prompt, so the gate's `fallback` applies —
+`revert` (default: undo + report) or `accept` (ship + flag) — as it does when an auto mode exhausts
+`maxRetries`. A gate-failing result is **never shipped silently**: an accept/override is reported as
+**overridden** with its findings. See `examples/gate-skeleton/README.md` for the full contract.
 
 ## Guarantees the panel enforces (every run, every language)
 
@@ -330,7 +386,7 @@ Translation Agency/
 ├── README.md                     # GitHub landing page
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 2.0.0
+├── VERSION                       # 2.1.0
 ├── .gitignore
 ├── package.json                  # npm test / npm start → tests/check.mjs; dev dep ajv
 ├── translation.config.json      # default settings (source/target langs, specialization, output, formats)
@@ -340,13 +396,16 @@ Translation Agency/
 │   ├── eval-assert.mjs           # Tier-2 deterministic eval assertions (npm run eval:assert)
 │   └── fixtures/                 # valid/ (must validate) + invalid/ (must be rejected)
 ├── examples/
-│   └── eval-fixture/             # planted-defect fixture + answer key for the Tier-2 behavioral eval
-│       ├── translation.config.json
-│       ├── glossary.csv          # sign in → anmelden (de)
-│       ├── locales/{en,de}.json  # en = source; de = DEFECTIVE (7 planted defects)
-│       ├── expected-good/locales/de.json  # correct de translation (self-test baseline)
-│       ├── EXPECTED.md           # answer key: every defect, its class, and the fix
-│       └── README.md             # runbook for the manual LLM eval (Eval A + Eval B)
+│   ├── eval-fixture/             # planted-defect fixture + answer key for the Tier-2 behavioral eval
+│   │   ├── translation.config.json
+│   │   ├── glossary.csv          # sign in → anmelden (de)
+│   │   ├── locales/{en,de}.json  # en = source; de = DEFECTIVE (7 planted defects)
+│   │   ├── expected-good/locales/de.json  # correct de translation (self-test baseline)
+│   │   ├── EXPECTED.md           # answer key: every defect, its class, and the fix
+│   │   └── README.md             # runbook for the manual LLM eval (Eval A + Eval B)
+│   └── gate-skeleton/            # drop-in reference PROJECT GATE (config.gates) for the target project
+│       ├── gate.mjs             # runnable `run` gate template — replace the one check
+│       └── README.md            # the findings-verdict contract + how to wire it up
 ├── .claude/
 │   ├── agents/
 │   │   ├── translate-lead.md       # Opus — orchestrator + adversarial QA (C1–C7)

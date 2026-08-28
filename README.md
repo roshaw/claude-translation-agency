@@ -2,7 +2,7 @@
 
 > Ready-to-use Claude skills and agents that translate **any project or set of files into any language**, with a domain **specialization** you choose per run.
 
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 Translation Agency is a portable localization pipeline for [Claude Code](https://claude.com/claude-code) / Cowork. It was extracted and generalized from a production legal-fee-calculator localization system, whose three-tier "translator panel" and adversarial-QA design proved out over many real passes — then had all its project-specific hardwiring lifted out into settings so the same machinery works on a WordPress plugin, a React app's i18n, a folder of Markdown docs, or a batch of JSON files.
@@ -231,6 +231,7 @@ All fields are optional (each falls back to a default); CLI flags override the f
   "output": { "mode": "inplace", "dir": "translations" },
   "verifyCmd": "",
   "buildCmd": "",
+  "gates": [],
   "creditInCommit": false,
   "wordpress": { "textdomain": "", "makeJson": false, "makeMo": false }
 }
@@ -265,6 +266,50 @@ project's git history, still nothing written inside the translated files. It's `
 your history stays clean. **If this tool has saved you real work and you're happy to give it a nod,
 flip `creditInCommit` to `true`** — it's a small, appreciated way to pass the word on. 🙏
 
+## Project gates
+
+Some quality checks a generic translator can't do on itself — is this too close to the source text
+(plagiarism / overlap), does it hit a readability target, does it clear brand or regulatory review? A
+**project gate** is your own check that runs on the finished translation and can send it back for
+another pass. Gates run **after** the completeness gate and **before** build/deliver, per target
+language (and are skipped with `/translate --no-gates`). They're different from `verifyCmd`/`buildCmd`,
+which only prove the project still builds — a gate judges the *content*. The gate itself lives in
+**your project**, not the toolkit; the toolkit runs it and drives the fix-up loop. Point `gates` at a
+shell command (or, in Claude Code, a project skill):
+
+```json
+"gates": [
+  {
+    "name": "plagiarism",
+    "run": "node examples/gate-skeleton/gate.mjs --lang {lang} --out {out} --files {files}",
+    "onFail": "ask",
+    "maxRetries": 2,
+    "fallback": "revert"
+  }
+]
+```
+
+The gate emits a **findings verdict** — to `{out}` (default `.translate-gate/{lang}.json`) or stdout:
+
+```json
+{ "status": "pass",
+  "disposition": "refine",
+  "findings": [ { "file": "translations/de/article-1.md",
+                  "passage": "…the flagged text…",
+                  "issue": "92% similar to source X",
+                  "suggestion": "rephrase to reduce overlap; keep meaning" } ] }
+```
+
+`status` is all the toolkit needs; the `findings` drive both the failure prompt and the fix. On a
+failure the gate's `onFail` decides what happens, scoped to the failing language(s): **`ask`** (the
+default) shows you the findings and lets you pick refine / revert & re-run / revert & stop / accept
+anyway; **`refine`** re-translates just the flagged passages in place (re-running the panel's C1–C7)
+and re-gates, up to `maxRetries`; **`retry`** reverts the whole run and does a fresh one informed by
+the findings; **`revert`** undoes the run and stops. In a headless run where `ask` can't prompt, the
+gate's `fallback` (`revert` by default, or `accept`) applies — and a gate-failing result is never
+shipped silently: an override is reported as **overridden**. The drop-in reference gate, with the full
+contract, is [`examples/gate-skeleton/README.md`](examples/gate-skeleton/README.md).
+
 ## Context, research & questions
 
 Three features exist so the translator produces the *right words for your product*, not generic
@@ -298,7 +343,7 @@ translation-agency/
 ├── README.md                     # this file
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 2.0.0
+├── VERSION                       # 2.1.0
 ├── package.json                  # npm test / npm start → tests/check.mjs (dev dep: ajv)
 ├── translation.config.json       # default settings
 ├── translation.config.schema.json # JSON Schema for the config (editor autocomplete + validation)
@@ -313,7 +358,7 @@ translation-agency/
 
 ## Versioning
 
-This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **2.0.0**.
+This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **2.1.0**.
 
 ## Contributing
 

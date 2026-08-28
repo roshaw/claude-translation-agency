@@ -9,6 +9,38 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [2.1.0] — 2026-08-28
+
+### Added
+- **Project gates** — project-owned quality checks that run on the run's final, complete output
+  (after the completeness gate, before build/deliver: `/translate` **Step 6.7**), per target
+  language. A gate judges the *content* (e.g. plagiarism / overlap, readability, brand/regulatory
+  compliance) — the kind of thing a generic translator can't self-verify — and can send the
+  translation back for another pass. Gate implementations live in the **target project**, not the
+  toolkit; the toolkit defines the contract, runs each gate, and drives the remediation loop.
+  - **Config** — a new `gates` array in `translation.config.json`. Each gate: `name`; **exactly one**
+    of `run` (a shell command — portable, headless-safe) or `skill` (a skill in the target project's
+    `.claude/skills/` — Claude-only, can reason), with optional `with` args; `onFail`
+    (`ask` default | `refine` | `retry` | `revert`); `maxRetries` (default 1); `fallback`
+    (`revert` default | `accept`); and `out` (verdict path, default `.translate-gate/{lang}.json`).
+    `{files}`/`{lang}`/`{out}` are substituted. Schema-validated (`gates[].` requires `name` + one of
+    `run`/`skill`, `additionalProperties:false`).
+  - **Findings contract** — the gate emits `{ status, disposition?, findings[] }` to `{out}` or
+    stdout; `findings` (file/passage/issue/suggestion) power both the operator prompt and the `refine`
+    remediation constraints. A missing/invalid verdict is itself a failure.
+  - **Dispositions** — `ask` (default) surfaces the findings in one consolidated prompt (refine /
+    revert & re-run / revert & stop / accept, plus a per-language vs whole-run scope); `refine`
+    re-translates the flagged passages in place (re-running the panel's C1–C7) and re-gates up to
+    `maxRetries`; `retry` reverts the run and does a fresh pass informed by the findings; `revert`
+    undoes the run and stops. Headless runs (no operator) apply `fallback`; an accepted/overridden
+    gate is reported as such. A gate-failing result is never committed/delivered silently.
+  - **`--no-gates`** flag skips the stage for a run.
+  - **Reference gate** — `examples/gate-skeleton/` (`gate.mjs` + README): a drop-in `run` gate that
+    emits the contract; copy it into your project and replace the one check.
+  - **Tests** — new valid/invalid schema fixtures for the `gates` shape, and a deterministic,
+    tokenless self-test (`check.mjs` block g3) that runs the reference gate and asserts it still emits
+    the contract (fail-with-findings on a defect, clean pass otherwise).
+
 ## [2.0.0] — 2026-08-15
 
 ### Changed
@@ -381,7 +413,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/roshaw/claude-translation-agency/compare/v1.1.1...v2.0.0
 [1.1.1]: https://github.com/roshaw/claude-translation-agency/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/roshaw/claude-translation-agency/compare/v1.0.0...v1.1.0

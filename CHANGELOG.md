@@ -9,6 +9,14 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [2.6.1] — 2026-09-15
+
+### Changed
+- **README "Which tool runs it?" section** rewritten as a practical walkthrough for **Claude Code** and
+  **OpenCode** (install, generate, models/auth, how to invoke the panel, the subagent-invocation
+  gotcha). Adds an explicit **tested-status**: Claude Code and OpenCode are run for real; **Codex and
+  Copilot are generated + lint-clean but NOT tested** (their CLIs aren't installed on the dev machine).
+
 ## [2.6.0] — 2026-09-15
 
 ### Added
@@ -526,7 +534,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.6.0...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.6.1...HEAD
+[2.6.1]: https://github.com/roshaw/claude-translation-agency/compare/v2.6.0...v2.6.1
 [2.6.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.5.0...v2.6.0
 [2.5.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.4.1...v2.5.0
 [2.4.1]: https://github.com/roshaw/claude-translation-agency/compare/v2.4.0...v2.4.1

@@ -1,6 +1,6 @@
 # Translation Agency
 
-**Version 2.6.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
+**Version 2.6.1** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
 
 A reusable, project-agnostic translation system: ready-to-use **skills** and **agents** that
 translate **any project or set of files into any language**, with a domain **specialization** you
@@ -386,7 +386,7 @@ Translation Agency/
 ├── README.md                     # GitHub landing page
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 2.6.0
+├── VERSION                       # 2.6.1
 ├── .gitignore
 ├── package.json                  # npm test / npm start → tests/check.mjs; dev dep ajv
 ├── translation.config.json      # default settings (source/target langs, specialization, output, formats)

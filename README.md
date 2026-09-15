@@ -2,7 +2,7 @@
 
 > Ready-to-use Claude skills and agents that translate **any project or set of files into any language**, with a domain **specialization** you choose per run.
 
-[![Version](https://img.shields.io/badge/version-2.6.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.6.1-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 Translation Agency is a portable localization pipeline for [Claude Code](https://claude.com/claude-code) / Cowork. It was extracted and generalized from a production legal-fee-calculator localization system, whose three-tier "translator panel" and adversarial-QA design proved out over many real passes — then had all its project-specific hardwiring lifted out into settings so the same machinery works on a WordPress plugin, a React app's i18n, a folder of Markdown docs, or a batch of JSON files.
@@ -343,7 +343,7 @@ translation-agency/
 ├── README.md                     # this file
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 2.6.0
+├── VERSION                       # 2.6.1
 ├── package.json                  # npm test / npm start → tests/check.mjs (dev dep: ajv)
 ├── translation.config.json       # default settings
 ├── translation.config.schema.json # JSON Schema for the config (editor autocomplete + validation)
@@ -361,42 +361,106 @@ translation-agency/
 └── projects/                     # _template + README tracked; registry.json + per-project data are git-ignored (local)
 ```
 
-## Running on other tools (OpenCode · Codex · Copilot)
+## Which tool runs it? (Claude Code or OpenCode)
 
-The agents and skills are **hand-edited in [`.claude/`](.claude/)** (the primary author works in Claude
-Code) — that is the single source of truth. Every other tool's tree is **generated from `.claude/`**
-(via [`adapters/<tool>.json`](adapters/) + [`tiers.json`](tiers.json)); the source is never
-overwritten by a build. `npm test` proves each generated tree stays faithful (lint + idempotence +
-no-drift; plus a toolchain-faithfulness check that the parse→render round-trips `.claude/`
-byte-for-byte — see [`docs/porting/`](docs/porting/)).
+The same three-tier panel runs in **Claude Code** (the primary, always-current path) or in **OpenCode**
+(a validated, generated port). Pick whichever CLI you already use — the translation quality and the
+C1–C7 review are the same; only the wiring differs.
+
+**Tested status:** ✅ **Claude Code** and ✅ **OpenCode** have been run for real. ⚠️ **Codex** and
+**Copilot** trees are generated and lint-clean but **not tested** (those CLIs aren't installed on the
+dev machine) — see the note under [Also generated](#also-generated-codex--copilot).
+
+> **One source of truth.** The agents and skills are hand-edited in [`.claude/`](.claude/). Every other
+> tool's tree (`.opencode/`, `.codex/`, `.github/`) is **generated from `.claude/`** and never edits it.
+> After changing anything in `.claude/`, run `npm run build:agents` to propagate (`npm test` fails if a
+> generated tree has drifted).
+
+### Option A — Claude Code (recommended, zero setup)
+
+The skills and agents live in `.claude/` and Claude Code picks them up automatically when you run it
+inside this folder. Just invoke the skill and point it at what you want translated:
 
 ```bash
-npm run models                # resolve tier→model per tool from the tool's available models (see below)
-npm run build:agents          # regenerate .opencode/ .codex/ .github/ FROM .claude/
-npm run lint:agents           # structural lint per tool (Layer 2)
-npm run check:agents          # no-regression + idempotence (Layers 1 & 3)
+/translate-init --path C:\Projects\MyApp     # one-time: build that project's translation.config.json
+/translate --path C:\Projects\MyApp --to de,fr --domain technical
 ```
 
-After editing anything in `.claude/`, run `npm run build:agents` to propagate to the other trees
-(`npm test` fails if a generated tree has drifted from `.claude/`).
+`/translate` spawns the **Lead** once; the Lead dispatches each batch to the **Senior** or **Junior**,
+reviews every result against C1–C7, and signs off. See [Usage](#usage) for the full flag set. To use it
+from *inside* another project instead, copy `.claude/agents/`, `.claude/skills/`, and `specializations/`
+there (plus a `translation.config.json`).
 
-| Tool | Tree | Install | Run the panel |
-|------|------|---------|---------------|
-| **Claude Code** | `.claude/` | (this repo) | `/translate` (see Usage) |
-| **OpenCode** | `.opencode/` | opencode.ai | `opencode`, then the `/translate` command (a primary that delegates to the `@translate-*` subagents via the Task tool). Validated: the CLI loads all four agents. |
-| **GitHub Copilot CLI** | `.github/agents/` | `gh` + Copilot CLI | `copilot`, then invoke the `translate` agent (delegates to workers via the `agent` tool). |
-| **OpenAI Codex CLI** | `.codex/` | openai.com Codex CLI | Codex has **no auto-spawn** — run the manual two-pass: `codex --profile mid` with `.codex/agents/translate-senior.md` to translate, then `codex --profile strong` with `.codex/agents/translate-lead.md` to review. See [`docs/porting/codex-notes.md`](docs/porting/codex-notes.md). |
+### Option B — OpenCode (generated port)
 
-**Models are resolved dynamically, not hardcoded.** `npm run models -- <tool>` lists a tool's
-available models and writes your tier→model choices into `tiers.json` (see
-[`docs/porting/model-resolution.md`](docs/porting/model-resolution.md)). A tier left **unresolved**
-makes the generated agents **omit `model:` and inherit the tool's configured default** — so a tree
-works out of the box before you pin per-tier models. The cross-tool behavioral eval (Layer 5) is a
-pre-release runbook in [`examples/eval-fixture/README.md`](examples/eval-fixture/README.md).
+OpenCode gets its own tree under `.opencode/`: the four panel agents as **subagents**
+(`.opencode/agents/*.md`) and the four skills as **slash commands** (`.opencode/commands/*.md`).
+
+1. **Install OpenCode** — [opencode.ai](https://opencode.ai). The CLI is `opencode` (the Desktop app
+   also ships `opencode-cli.exe`).
+2. **Generate / refresh the tree** from this repo:
+   ```bash
+   npm run build:agents        # writes .opencode/ (and .codex/, .github/) from .claude/
+   ```
+3. **Models** — by default the agents **omit `model:` and inherit whatever model OpenCode is configured
+   with**, so it works immediately once you've authed a provider in OpenCode (`opencode auth login`).
+   To pin the panel's cheap/expensive tiers explicitly:
+   ```bash
+   npm run models -- opencode                              # list your available models
+   npm run models -- opencode strong=<id> mid=<id> cheap=<id>   # pin them, then re-run build:agents
+   ```
+   (`npm run models -- opencode --clear` goes back to inherit-default.)
+4. **Run the panel** from this repo (so `specializations/` and project memory resolve), pointing at the
+   target project with `--path`, exactly like the Claude flags:
+   ```bash
+   # interactive: start opencode, then type the command
+   opencode
+   > /translate --path C:\Projects\MyApp --to de,fr --domain technical
+
+   # or headless:
+   opencode run --command translate "--path C:\Projects\MyApp --to de,fr"
+   ```
+   The `translate` command runs as a **primary** agent and delegates to `@translate-lead`, which spawns
+   `@translate-senior` / `@translate-junior` via OpenCode's **Task tool** — the same panel, same C1–C7
+   review. You can also call a worker directly in a message, e.g. `@translate-senior …`.
+
+   > **Gotcha:** `opencode run --agent translate-senior` won't work — a *subagent* can't be launched
+   > directly (OpenCode falls back to the default agent). Reach the panel through the `/translate`
+   > **command**, or a worker via an `@mention`.
+
+*Validated:* on the real OpenCode CLI, all four agents load and parse, and the ported Senior produced a
+correct, glossary- and register-compliant German translation of the eval-fixture (graded by
+`eval-assert.mjs`). See [`docs/porting/opencode-notes.md`](docs/porting/opencode-notes.md).
+
+### Also generated: Codex & Copilot
+
+> ⚠️ **Not tested.** The Codex and Copilot trees are **generated and structurally linted only** — they
+> have **not** been run or behaviorally validated, because those CLIs aren't installed on the
+> development machine. Treat the commands below as the intended usage, and validate against your own
+> install before relying on them (re-verify the model IDs and, for Copilot, the tool-alias names). Only
+> **Claude Code** and **OpenCode** have been run for real.
+
+| Tool | Tree | How to run (untested) |
+|------|------|-----------|
+| **GitHub Copilot CLI** | `.github/agents/<name>.agent.md` | Invoke the `translate` agent; it delegates to the worker agents via the `agent` tool. |
+| **OpenAI Codex CLI** | `.codex/` (`config.toml` + `agents/`) | Codex has **no auto-spawn**, so run the manual two-pass: translate with `codex --profile mid` on `.codex/agents/translate-senior.md`, then review with `codex --profile strong` on `.codex/agents/translate-lead.md`. See [`docs/porting/codex-notes.md`](docs/porting/codex-notes.md). |
+
+The cross-tool behavioral runbook (for when a CLI *is* available) is in
+[`examples/eval-fixture/README.md`](examples/eval-fixture/README.md).
+
+### The build & check commands
+
+```bash
+npm run build:agents          # regenerate .opencode/ .codex/ .github/ FROM .claude/
+npm run models -- --check     # show the tier→model map for every tool
+npm run lint:agents           # structural lint per tool (Layer 2)
+npm run check:agents          # no-regression + idempotence (Layers 1 & 3)
+npm test                      # everything above + the rest of the invariant suite
+```
 
 ## Versioning
 
-This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **2.6.0**.
+This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **2.6.1**.
 
 ## Contributing
 

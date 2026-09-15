@@ -46,6 +46,27 @@ The pilot ported the whole surface (not just the lead+senior slice) because the 
   deterministic non-agent work in `/translate` (scope calc, final verify/build, commit) runs as the
   command body's instructions; a live run may want a dedicated primary agent instead. Revisit after L5.
 
+## Validated against the real CLI (OpenCode Desktop v1.18.31 / core 1.4.0)
+
+Run on the actual `opencode` CLI, not just doc-reading:
+
+- **`opencode agent list` discovers and parses all four generated agents** —
+  `translate-lead/senior/junior/researcher`, each as `(subagent)`. The real tool accepted the
+  frontmatter (mode/model/tools map/permission) with no parse error. This is a stronger Layer-2 pass
+  than the offline lint.
+- **A live `opencode run` executes and produces correct output** — a chrome-translation smoke prompt
+  returned proper German (`Einstellungen` / `Speichern` / `Alle Rechte vorbehalten`).
+- **Finding — subagents aren't directly runnable via `run --agent`.** `opencode run --agent
+  translate-junior` warns *"is a subagent, not a primary agent. Falling back to default agent"* and
+  runs the default primary instead. Subagents are reachable only through a **primary** agent's Task
+  tool / `@mention`. So the panel's real entry point is the **`/translate` command** (a primary),
+  which then delegates to the workers — exactly the design, but it means a Layer-5 behavioral run must
+  start from the command, not `--agent translate-lead`.
+- **Model IDs unverifiable here.** `opencode models` listed only free `opencode/*` models (no paid
+  provider authed), so the `anthropic/claude-*` tier IDs in `tiers.json` couldn't be confirmed against
+  the provider list — the `provider/model-id` *format* is correct; the exact IDs remain re-verify-at-
+  port-time placeholders.
+
 ## Not done here (out of scope for a deterministic build)
 
 - **Layer 5 — live behavioral run.** Running the ported panel on the OpenCode CLI against

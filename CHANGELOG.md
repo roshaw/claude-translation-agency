@@ -9,6 +9,23 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [2.4.1] — 2026-09-15
+
+### Added
+- **Phase 7 docs.** README "Running on other tools (OpenCode · Codex · Copilot)" section (install +
+  run per tool, `build:agents`/`lint:agents`/`check:agents`) and an updated project-layout tree.
+- **Layer 5 runbook.** `examples/eval-fixture/README.md` gains a per-tool cross-tool behavioral-parity
+  section (run the ported panel on each tool, grade with the same `eval-assert.mjs`, expect 0
+  violations).
+
+### Verified
+- **OpenCode port validated against the real CLI** (OpenCode Desktop v1.18.31 / core 1.4.0):
+  `opencode agent list` discovers and parses all four generated agents as subagents; a live
+  `opencode run` executed and produced correct German. Finding recorded: `run --agent <subagent>`
+  falls back to the default agent — subagents are reached only via a primary agent's Task tool /
+  `@mention`, so the `/translate` command is the panel entry point. See
+  [`docs/porting/opencode-notes.md`](docs/porting/opencode-notes.md).
+
 ## [2.4.0] — 2026-09-15
 
 ### Added
@@ -474,7 +491,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.4.0...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.4.1...HEAD
+[2.4.1]: https://github.com/roshaw/claude-translation-agency/compare/v2.4.0...v2.4.1
 [2.4.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.1.0...v2.2.0

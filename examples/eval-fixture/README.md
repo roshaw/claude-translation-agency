@@ -89,6 +89,32 @@ open-questions), not a panel miss. `--ignore-source-gaps` excludes exactly that 
 which is why the expectation above is a clean `0`. (Omit the flag and the same run reports the one
 `missing-in-source` orphan — that path is what the Tier-1 self-test exercises.)
 
+## Eval B — per tool (Layer 5, cross-tool parity)
+
+The same behavioral bar, run through each **ported** tool tree, proves the port didn't just produce
+well-formed files (that's `npm test` Layers 1–3) but agents that still *do the job*. This is the
+plan's **Layer 5** — manual, token-costing, pre-release, never in `npm test`. It needs the target CLI
+installed and the generated tree in place (`npm run build:agents`).
+
+For each tool, run the ported panel on a **copy** of the fixture, then grade its output with the
+**same** deterministic assertion used above:
+
+    node tests/eval-assert.mjs "<run>/locales/de.json" examples/eval-fixture/locales/en.json examples/eval-fixture/glossary.csv --formality formal --ignore-source-gaps
+
+**Expected for every tool: `0 violations`** — the shared assertion means "OpenCode passed" and
+"Claude passed" mean the *same* thing.
+
+| Tool | Tree | How to run the panel on the fixture copy |
+|------|------|------------------------------------------|
+| **Claude Code** | `.claude/` | `/translate --full --path <copy>` (Eval B above) |
+| **OpenCode** | `.opencode/` | `opencode` in the copy; invoke `/translate` (the command delegates to `@translate-lead`, which spawns `@translate-senior`/`@translate-junior` via the Task tool) |
+| **Copilot CLI** | `.github/agents/` | `copilot` in the copy; invoke the `translate` agent (it delegates to the worker agents via the `agent` tool) |
+| **Codex CLI** | `.codex/` | **Manual two-pass** (Codex has no auto-spawn — see [`../../docs/porting/codex-notes.md`](../../docs/porting/codex-notes.md)): `codex --profile mid` with `.codex/agents/translate-senior.md` to translate, then `codex --profile strong` with `.codex/agents/translate-lead.md` to review. Grade the result the same way. |
+
+A tool that reports `0 violations` has cleared the same bar as Claude. Any violation is a **real port
+miss** for that tool — open it against [`EXPECTED.md`](EXPECTED.md), and fix the tool's adapter
+(`adapters/<tool>.json`) or the shared body in `src/`, then `npm run build:agents` and re-run.
+
 ## Why the split
 
 The assertion script encodes the pass/fail post-conditions **once**, deterministically. Tier 1 uses it

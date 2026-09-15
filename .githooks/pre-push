@@ -1,0 +1,12 @@
+#!/bin/sh
+# Belt-and-suspenders: block a push if any generated tree has drifted from
+# .claude/ (e.g. a hand-edit slipped in, or the pre-commit hook was bypassed).
+# No-op if Node isn't available.
+
+if command -v node >/dev/null 2>&1 && [ -f tests/trees-up-to-date.mjs ]; then
+  if ! node tests/trees-up-to-date.mjs; then
+    echo "pre-push: a generated tree has drifted from .claude/ — run 'npm run build:agents', commit, and push again" >&2
+    exit 1
+  fi
+fi
+exit 0

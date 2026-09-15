@@ -2,7 +2,7 @@
 
 > Ready-to-use agents and skills that translate **any project or set of files into any language**, with a domain **specialization** you choose per run — run them in **Claude Code** or **OpenCode** (Codex and Copilot trees are generated too).
 
-[![Version](https://img.shields.io/badge/version-2.6.2-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.7.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 Translation Agency is a portable, tool-independent localization pipeline. It runs its three-tier "translator panel" in [**Claude Code**](https://claude.com/claude-code) / Cowork (the authored source of truth) **or in [OpenCode](https://opencode.ai)** — and generates ready trees for the **OpenAI Codex CLI** and **GitHub Copilot CLI** from the same source (see [Which tool runs it?](#which-tool-runs-it-claude-code-or-opencode)). It was extracted and generalized from a production legal-fee-calculator localization system, whose panel and adversarial-QA design proved out over many real passes — then had all its project-specific hardwiring lifted out into settings so the same machinery works on a WordPress plugin, a React app's i18n, a folder of Markdown docs, or a batch of JSON files.
@@ -42,29 +42,33 @@ The `translate` entry point (a skill in Claude Code, a `/command` in OpenCode) c
 
 ## Requirements
 
-Any one of the supported agent CLIs:
+**To use it you need only one of the supported agent CLIs — no Node, no build step.** The generated
+tool trees are committed to the repo, so a fresh clone is ready to run:
 
 - **[Claude Code](https://claude.com/claude-code)** or the Claude desktop app (Cowork) — the primary path; the agents/skills in `.claude/` are picked up automatically. *(Validated.)*
-- **[OpenCode](https://opencode.ai)** — runs the generated `.opencode/` tree. *(Validated.)*
-- **OpenAI Codex CLI** or **GitHub Copilot CLI** — run the generated `.codex/` / `.github/` trees. *(Generated + lint-clean, not yet run — see [Which tool runs it?](#which-tool-runs-it-claude-code-or-opencode).)*
+- **[OpenCode](https://opencode.ai)** — runs the committed `.opencode/` tree as-is. *(Validated.)*
+- **OpenAI Codex CLI** or **GitHub Copilot CLI** — run the committed `.codex/` / `.github/` trees. *(Generated + lint-clean, not yet run — see [Which tool runs it?](#which-tool-runs-it-claude-code-or-opencode).)*
 
-**Node 18+** is only needed to regenerate the non-Claude trees and to run the test suite
-(`npm install` pulls one dev dependency, `ajv`). Running the panel itself needs just your agent CLI.
+> **Node 18+ is only for contributors** who edit `.claude/` — it regenerates the other trees, runs the
+> test suite, and enables the git hooks that keep everything in sync. Running the pipeline never needs it.
 
 ## Install
 
-Clone the repo, then use it with your CLI of choice:
+Clone the repo and run it with your CLI of choice — the tool trees are already generated and committed,
+so there's nothing to build:
 
 ```bash
 git clone https://github.com/roshaw/claude-translation-agency.git
-cd claude-translation-agency
-npm install          # only if you'll regenerate other tools' trees or run `npm test`
 ```
 
 - **Claude Code:** run Claude from inside the repo (the `.claude/` agents/skills load automatically), or copy `.claude/agents/`, `.claude/skills/`, and `specializations/` (plus a `translation.config.json`) into another project.
-- **OpenCode / Codex / Copilot:** run `npm run build:agents` to (re)generate `.opencode/`, `.codex/`, and `.github/` from `.claude/`, then follow [Which tool runs it?](#which-tool-runs-it-claude-code-or-opencode).
+- **OpenCode:** run `opencode` from the repo — the committed `.opencode/` tree is picked up automatically. *(Codex/Copilot work the same way with their committed trees — see [Which tool runs it?](#which-tool-runs-it-claude-code-or-opencode).)*
 
-Either way, point a run at any project with `--path` (e.g. `/translate --path <that project>`), so you can translate other codebases without copying anything.
+Point a run at any project with `--path` (e.g. `/translate --path <that project>`), so you can translate other codebases without copying anything.
+
+> **Contributing?** If you edit `.claude/`, run `npm install` once — it pulls the single dev dependency
+> (`ajv`) and enables the git hooks. From then on, just edit `.claude/` and commit: the other tool
+> trees regenerate automatically (`npm test` and a pre-push hook fail if anything ever drifts).
 
 ## Usage
 
@@ -365,7 +369,7 @@ translation-agency/
 ├── README.md                     # this file
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 2.6.2
+├── VERSION                       # 2.7.0
 ├── package.json                  # npm test / npm start → tests/check.mjs (dev dep: ajv)
 ├── translation.config.json       # default settings
 ├── translation.config.schema.json # JSON Schema for the config (editor autocomplete + validation)
@@ -393,10 +397,12 @@ C1–C7 review are the same; only the wiring differs.
 **Copilot** trees are generated and lint-clean but **not tested** (those CLIs aren't installed on the
 dev machine) — see the note under [Also generated](#also-generated-codex--copilot).
 
-> **One source of truth.** The agents and skills are hand-edited in [`.claude/`](.claude/). Every other
-> tool's tree (`.opencode/`, `.codex/`, `.github/`) is **generated from `.claude/`** and never edits it.
-> After changing anything in `.claude/`, run `npm run build:agents` to propagate (`npm test` fails if a
-> generated tree has drifted).
+> **One source of truth — and it stays in sync automatically.** The agents and skills are hand-edited in
+> [`.claude/`](.claude/); every other tool's tree (`.opencode/`, `.codex/`, `.github/`) is **generated
+> from `.claude/`** and never edits it. A **git pre-commit hook regenerates the other trees on every
+> commit** (enabled by `npm install`, or `npm run setup:hooks`), so you normally never run
+> `build:agents` by hand — just edit `.claude/` and commit. A pre-push hook and `npm test` both fail if
+> a tree ever drifts.
 
 ### Option A — Claude Code (recommended, zero setup)
 
@@ -418,21 +424,16 @@ there (plus a `translation.config.json`).
 OpenCode gets its own tree under `.opencode/`: the four panel agents as **subagents**
 (`.opencode/agents/*.md`) and the four skills as **slash commands** (`.opencode/commands/*.md`).
 
+The `.opencode/` tree is **already committed** — you don't build anything.
+
 1. **Install OpenCode** — [opencode.ai](https://opencode.ai). The CLI is `opencode` (the Desktop app
    also ships `opencode-cli.exe`).
-2. **Generate / refresh the tree** from this repo:
-   ```bash
-   npm run build:agents        # writes .opencode/ (and .codex/, .github/) from .claude/
-   ```
-3. **Models** — by default the agents **omit `model:` and inherit whatever model OpenCode is configured
-   with**, so it works immediately once you've authed a provider in OpenCode (`opencode auth login`).
-   To pin the panel's cheap/expensive tiers explicitly:
-   ```bash
-   npm run models -- opencode                              # list your available models
-   npm run models -- opencode strong=<id> mid=<id> cheap=<id>   # pin them, then re-run build:agents
-   ```
-   (`npm run models -- opencode --clear` goes back to inherit-default.)
-4. **Run the panel** from this repo (so `specializations/` and project memory resolve), pointing at the
+2. **Auth a provider** — `opencode auth login`. By default the agents **omit `model:` and inherit
+   whatever model OpenCode is configured with**, so they work immediately with your provider.
+   *(Optional, contributors only: pin the panel's cheap/expensive tiers with
+   `npm run models -- opencode strong=<id> mid=<id> cheap=<id>` — needs Node; see
+   [model resolution](docs/porting/model-resolution.md).)*
+3. **Run the panel** from this repo (so `specializations/` and project memory resolve), pointing at the
    target project with `--path`, exactly like the Claude flags:
    ```bash
    # interactive: start opencode, then type the command
@@ -470,19 +471,22 @@ correct, glossary- and register-compliant German translation of the eval-fixture
 The cross-tool behavioral runbook (for when a CLI *is* available) is in
 [`examples/eval-fixture/README.md`](examples/eval-fixture/README.md).
 
-### The build & check commands
+### Contributor commands (only if you edit `.claude/`)
+
+You don't need these to *use* the pipeline — the trees are committed and the pre-commit hook keeps them
+in sync automatically. They're here for working on the toolkit itself (needs Node 18+):
 
 ```bash
-npm run build:agents          # regenerate .opencode/ .codex/ .github/ FROM .claude/
+npm install                   # once — pulls `ajv` and enables the git hooks
+npm run build:agents          # regenerate .opencode/ .codex/ .github/ FROM .claude/ (also runs on commit)
 npm run models -- --check     # show the tier→model map for every tool
-npm run lint:agents           # structural lint per tool (Layer 2)
-npm run check:agents          # no-regression + idempotence (Layers 1 & 3)
-npm test                      # everything above + the rest of the invariant suite
+npm run test:trees            # assert the generated trees are up to date with .claude/
+npm test                      # the full invariant suite (lint, idempotence, trees up to date, …)
 ```
 
 ## Versioning
 
-This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **2.6.2**.
+This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **2.7.0**.
 
 ## Contributing
 

@@ -1,13 +1,16 @@
 {
   "private": true,
   "name": "translation-agency",
-  "version": "2.6.2",
+  "version": "2.7.0",
   "type": "module",
   "scripts": {
     "test": "node tests/check.mjs",
     "start": "node tests/check.mjs",
     "eval:assert": "node tests/eval-assert.mjs",
+    "test:trees": "node tests/trees-up-to-date.mjs",
     "models": "node tools/resolve-models.mjs",
+    "setup:hooks": "node tools/setup-hooks.mjs",
+    "postinstall": "node tools/setup-hooks.mjs",
     "build:agents": "node tools/generate.mjs",
     "lint:agents": "node tools/lint.mjs",
     "check:agents": "node tests/no-regression.mjs"

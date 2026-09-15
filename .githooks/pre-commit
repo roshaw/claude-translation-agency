@@ -1,0 +1,16 @@
+#!/bin/sh
+# Auto-regenerate the per-tool trees from .claude/ (the source of truth) before
+# every commit, and stage them — so .opencode/ .codex/ .github/ never drift and
+# nobody has to remember `npm run build:agents`. No-op if Node isn't available.
+#
+# Enabled via `core.hooksPath=.githooks` (set by `npm install` / `npm run setup:hooks`).
+
+if command -v node >/dev/null 2>&1 && [ -f tools/generate.mjs ]; then
+  if ! node tools/generate.mjs >/dev/null; then
+    echo "pre-commit: agent generation failed — fix tools/generate.mjs or .claude/ and retry" >&2
+    exit 1
+  fi
+  # Stage any regenerated files so they land in this commit.
+  git add .opencode .codex .github 2>/dev/null || true
+fi
+exit 0

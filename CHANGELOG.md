@@ -9,6 +9,24 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [2.7.0] — 2026-09-15
+
+### Added
+- **Generated trees stay in sync automatically — no manual `build:agents`.** A tracked git
+  **pre-commit** hook (`.githooks/pre-commit`) regenerates `.opencode/`, `.codex/`, and `.github/` from
+  `.claude/` and stages them on every commit, so editing `.claude/` and committing is all it takes. A
+  **pre-push** hook (`.githooks/pre-push`) blocks a push if any tree has drifted. Hooks are enabled
+  automatically by `npm install` (`postinstall` → `tools/setup-hooks.mjs`, sets `core.hooksPath`), or
+  manually with `npm run setup:hooks`.
+- **`tests/trees-up-to-date.mjs`** (`npm run test:trees`) — a focused, clearly-named test asserting every
+  generated tree is byte-identical to a fresh generation from `.claude/`. It's what the pre-push hook
+  runs and is covered by `npm test`.
+
+### Changed
+- **README: using it needs neither Node nor a build step.** Clarified that the generated tool trees are
+  committed and ready to run — Node 18+ and the `npm` commands are **contributor-only** (for editing
+  `.claude/`). Requirements/Install/OpenCode steps reworded accordingly.
+
 ## [2.6.2] — 2026-09-15
 
 ### Changed
@@ -544,7 +562,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.6.2...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.7.0...HEAD
+[2.7.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.6.2...v2.7.0
 [2.6.2]: https://github.com/roshaw/claude-translation-agency/compare/v2.6.1...v2.6.2
 [2.6.1]: https://github.com/roshaw/claude-translation-agency/compare/v2.6.0...v2.6.1
 [2.6.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.5.0...v2.6.0

@@ -13,7 +13,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { UNITS, ROOT, read, readJson, tiers, adapter, srcBodyPath, srcMetaPath, outPath } from './lib.mjs';
+import { UNITS, ROOT, tiers, adapter, loadUnit, outPath } from './lib.mjs';
 
 // --- frontmatter renderers, keyed by adapter.frontmatter.flavor ------------
 
@@ -160,8 +160,8 @@ export function generateTool(tool, destRoot = ROOT) {
   const ad = adapter(tool);
   const written = {};
   for (const u of UNITS) {
-    const meta = readJson(srcMetaPath(u));
-    const body = applyBodySubs(read(srcBodyPath(u)), ad);
+    const { meta, body: rawBody } = loadUnit(u);
+    const body = applyBodySubs(rawBody, ad);
     const rel = outPath(ad, u);
     const content = renderFrontmatter(ad, meta) + body;
     const abs = path.join(destRoot, rel);
@@ -179,16 +179,24 @@ export function generateTool(tool, destRoot = ROOT) {
   return written;
 }
 
-function listAdapters() {
+export function listAdapters() {
   return fs.readdirSync(path.join(ROOT, 'adapters'))
     .filter((f) => f.endsWith('.json'))
     .map((f) => f.replace(/\.json$/, ''));
 }
 
+// .claude/ is the hand-edited SOURCE, not a generated target — never emit it in a
+// real build. (The Layer-1 test still generates it to a temp dir to prove the
+// parse+render toolchain is faithful, but the build never overwrites the source.)
+const SOURCE_TOOL = 'claude';
+
 const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (isMain) {
-  const tools = process.argv.slice(2);
-  const targets = tools.length ? tools : listAdapters();
+  const requested = process.argv.slice(2);
+  const targets = (requested.length ? requested : listAdapters()).filter((t) => {
+    if (t === SOURCE_TOOL) { console.log(`skipping ${SOURCE_TOOL} — it is the authored source, not a generated target`); return false; }
+    return true;
+  });
   for (const t of targets) {
     const written = generateTool(t);
     console.log(`generated ${Object.keys(written).length} units -> ${t}`);

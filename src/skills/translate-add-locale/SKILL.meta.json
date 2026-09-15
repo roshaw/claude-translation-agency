@@ -1,5 +1,0 @@
-{
-  "kind": "skill",
-  "name": "translate-add-locale",
-  "description": "Scaffold a brand-new interface LANGUAGE (locale) end-to-end in a codebase so the build goes green with source-language placeholders, then hand off to /translate for the real translation. Wires the locale into the type/registry (locale list, HTML lang, OG locale), clones the message catalog to a new <locale> file, mirrors any per-context copy files and content-tree pages as placeholders, adds the metadata (native name, flag, number format), the routes, the build config (locales + sitemap), and the language switcher. Use when the user wants to add a new UI language (\"add German\", \"add pt-BR\", \"implement a new locale\", \"add a WordPress language\"). NOT for translating existing copy (that is /translate) and NOT for adding a data/content entity. The argument is the language/locale code, not a country code — Greek is `el` (not `gr`), Czech is `cs` (not `cz`)."
-}

@@ -1,11 +1,16 @@
 #!/usr/bin/env node
 // Layer 1 + Layer 3 — regression / equivalence / idempotence guards.
 //
-// Layer 1 (no-regression): the generator reproduces each tool's COMMITTED tree
-//   byte-for-byte from src/ + adapters/<tool>.json + tiers.json. For `claude`
-//   the committed tree IS the authored .claude/, so this is the "did we break the
-//   working tool" gate. For other tools it proves the committed tree hasn't
-//   drifted from src (no hand-edits leaked in).
+// .claude/ is the AUTHORED source of truth (hand-edited in Claude Code); every
+// other tool tree is generated FROM it (loadUnit → adapters/<tool>.json + tiers.json).
+//
+// Layer 1 (no-regression):
+//   - `claude`: generating to a temp dir and comparing to the committed .claude/
+//     proves the parse+render TOOLCHAIN is faithful (it never corrupts the source
+//     as it splits frontmatter/body) — the source is never overwritten by a build.
+//   - other tools: the committed tree matches a fresh generation from the current
+//     .claude/, i.e. it hasn't drifted (someone edited .claude/ but forgot to
+//     re-run `npm run build:agents`, or hand-edited a generated tree).
 // Layer 3 (idempotence): generating twice yields identical output (determinism).
 //
 // Pure/offline. Exported for tests/check.mjs; also runnable standalone.

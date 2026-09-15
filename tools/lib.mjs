@@ -61,11 +61,22 @@ export function split(text) {
   return { fm, order, body };
 }
 
-// Paths in the src tree.
-export const srcBodyPath = (u) =>
-  u.kind === 'agent' ? `src/agents/${u.name}.md` : `src/skills/${u.name}/SKILL.md`;
-export const srcMetaPath = (u) =>
-  u.kind === 'agent' ? `src/agents/${u.name}.meta.json` : `src/skills/${u.name}/SKILL.meta.json`;
+// The AUTHORED source of truth is .claude/ (hand-edited in Claude Code). Every
+// other tool's tree is generated FROM it.
+export const claudePath = (u) =>
+  u.kind === 'agent' ? `.claude/agents/${u.name}.md` : `.claude/skills/${u.name}/SKILL.md`;
+
+// Read a unit from .claude/ and reduce it to neutral { meta, body }. meta.tier is
+// derived from the .claude model (opus->strong, sonnet->mid, haiku->cheap).
+export function loadUnit(u) {
+  const { fm, body } = split(read(claudePath(u)));
+  const meta = { kind: u.kind, name: fm.name, description: fm.description };
+  if (u.kind === 'agent') {
+    meta.tier = modelToTier(fm.model);
+    meta.tools = fm.tools.split(', ');
+  }
+  return { meta, body };
+}
 
 // Render an output path for a unit under a given adapter.
 export function outPath(ad, u) {

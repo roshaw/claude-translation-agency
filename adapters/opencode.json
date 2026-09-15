@@ -1,6 +1,7 @@
 {
   "$comment": "Adapter descriptor for OpenCode. Agents -> .opencode/agents/<name>.md (mode: subagent); skills -> .opencode/commands/<name>.md (/name). Verified against opencode.ai/docs (Sept 2026): YAML frontmatter, tools map, permission map, @mention/Task-tool subagent invocation. Re-verify model IDs at port time.",
   "tool": "opencode",
+  "modelsCommand": "opencode models",
   "paths": {
     "agent": ".opencode/agents/{name}.md",
     "skill": ".opencode/commands/{name}.md"

@@ -9,6 +9,23 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [2.5.0] — 2026-09-15
+
+### Changed
+- **`.claude/` is now the single source of truth** (was `src/`). The primary author works in Claude
+  Code and hand-edits `.claude/` directly; every other tool tree is **generated from `.claude/`**
+  (`tools/generate.mjs` reads the `.claude/` frontmatter + body via `loadUnit`). The separate `src/`
+  tree and `tools/extract.mjs` are removed. A build never overwrites `.claude/`; Layer 1 now proves
+  the parse→render toolchain round-trips `.claude/` byte-for-byte **and** that no generated tree has
+  drifted from the current `.claude/`. `npm test` stays green (34 checks).
+
+### Added
+- **Dynamic model resolution** (`tools/resolve-models.mjs`, `npm run models`): instead of hardcoded
+  model IDs, discover a tool's *actually-available* models (via the adapter's `modelsCommand`, a
+  `--cmd`, or a `--file`) and write the operator's tier→model choices into `tiers.json`. `--check`
+  prints the current map. Validated live against the OpenCode CLI. Docs:
+  [`docs/porting/model-resolution.md`](docs/porting/model-resolution.md).
+
 ## [2.4.1] — 2026-09-15
 
 ### Added
@@ -491,7 +508,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.4.1...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.5.0...HEAD
+[2.5.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.4.1...v2.5.0
 [2.4.1]: https://github.com/roshaw/claude-translation-agency/compare/v2.4.0...v2.4.1
 [2.4.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.2.0...v2.3.0

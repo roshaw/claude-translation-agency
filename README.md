@@ -2,7 +2,7 @@
 
 > Ready-to-use Claude skills and agents that translate **any project or set of files into any language**, with a domain **specialization** you choose per run.
 
-[![Version](https://img.shields.io/badge/version-2.4.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.5.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 Translation Agency is a portable localization pipeline for [Claude Code](https://claude.com/claude-code) / Cowork. It was extracted and generalized from a production legal-fee-calculator localization system, whose three-tier "translator panel" and adversarial-QA design proved out over many real passes — then had all its project-specific hardwiring lifted out into settings so the same machinery works on a WordPress plugin, a React app's i18n, a folder of Markdown docs, or a batch of JSON files.
@@ -343,19 +343,18 @@ translation-agency/
 ├── README.md                     # this file
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 2.4.1
+├── VERSION                       # 2.5.0
 ├── package.json                  # npm test / npm start → tests/check.mjs (dev dep: ajv)
 ├── translation.config.json       # default settings
 ├── translation.config.schema.json # JSON Schema for the config (editor autocomplete + validation)
 ├── tests/                        # check.mjs (Tier-1, +port Layers 1–3) + eval-assert.mjs + no-regression.mjs
 ├── examples/eval-fixture/        # planted-defect fixture + answer key for the Tier-2 behavioral eval
-├── src/                          # AUTHORED source of truth: agents/ + skills/ (body + *.meta.json)
+├── .claude/                      # AUTHORED source of truth (hand-edited in Claude Code): agents/ + skills/
 ├── adapters/                     # per-tool seam descriptors: claude, opencode, codex, copilot
-├── tiers.json                    # tier (strong/mid/cheap) → model per tool
-├── tools/                        # extract.mjs, generate.mjs, lint.mjs (the generator)
+├── tiers.json                    # tier (strong/mid/cheap) → model per tool (resolve with `npm run models`)
+├── tools/                        # generate.mjs, lint.mjs, resolve-models.mjs (the generator)
 ├── docs/porting/                 # coupling inventory + per-tool port notes
-├── .claude/                      # GENERATED (byte-identical to authored): agents/ + skills/
-├── .opencode/                    # GENERATED: agents/ (subagents) + commands/ (/name)
+├── .opencode/                    # GENERATED from .claude/: agents/ (subagents) + commands/ (/name)
 ├── .codex/                       # GENERATED: config.toml profiles + agents/ (TOML instruction docs)
 ├── .github/agents/               # GENERATED: <name>.agent.md (Copilot CLI)
 ├── specializations/              # general, technical, marketing, legal, finance, medical, ecommerce, travel, government, scientific (+ README)
@@ -364,16 +363,22 @@ translation-agency/
 
 ## Running on other tools (OpenCode · Codex · Copilot)
 
-The agents and skills are authored **once** in [`src/`](src/) and the per-tool trees are **generated**
-from it (`src/` + [`adapters/<tool>.json`](adapters/) + [`tiers.json`](tiers.json)). One command
-rebuilds every tree; `npm test` proves each stays faithful to the source (byte-identical for Claude;
-lint + idempotence for the rest — see [`docs/porting/`](docs/porting/)).
+The agents and skills are **hand-edited in [`.claude/`](.claude/)** (the primary author works in Claude
+Code) — that is the single source of truth. Every other tool's tree is **generated from `.claude/`**
+(via [`adapters/<tool>.json`](adapters/) + [`tiers.json`](tiers.json)); the source is never
+overwritten by a build. `npm test` proves each generated tree stays faithful (lint + idempotence +
+no-drift; plus a toolchain-faithfulness check that the parse→render round-trips `.claude/`
+byte-for-byte — see [`docs/porting/`](docs/porting/)).
 
 ```bash
-npm run build:agents          # regenerate .claude/ .opencode/ .codex/ .github/ from src/
+npm run models                # resolve tier→model per tool from the tool's available models (see below)
+npm run build:agents          # regenerate .opencode/ .codex/ .github/ FROM .claude/
 npm run lint:agents           # structural lint per tool (Layer 2)
 npm run check:agents          # no-regression + idempotence (Layers 1 & 3)
 ```
+
+After editing anything in `.claude/`, run `npm run build:agents` to propagate to the other trees
+(`npm test` fails if a generated tree has drifted from `.claude/`).
 
 | Tool | Tree | Install | Run the panel |
 |------|------|---------|---------------|
@@ -389,7 +394,7 @@ cross-tool behavioral eval (Layer 5) is a pre-release runbook in
 
 ## Versioning
 
-This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **2.4.1**.
+This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **2.5.0**.
 
 ## Contributing
 

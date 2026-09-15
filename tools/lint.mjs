@@ -8,7 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { UNITS, ROOT, readJson, tiers, adapter, srcMetaPath, outPath } from './lib.mjs';
+import { UNITS, ROOT, tiers, adapter, loadUnit, outPath } from './lib.mjs';
 
 // Required frontmatter keys per `${flavor}-${kind}`.
 const REQUIRED = {
@@ -77,7 +77,7 @@ export function lintTool(tool) {
 
     // model resolves via tiers.json (agents only)
     if (u.kind === 'agent') {
-      const meta = readJson(srcMetaPath(u));
+      const { meta } = loadUnit(u);
       const expected = T.tiers[meta.tier] && T.tiers[meta.tier][tool];
       const modelLine = fm.fence === '+++' ? `model = "${expected}"` : `model: ${expected}`;
       if (!expected) issues.push(`${rel}: tier "${meta.tier}" has no model for ${tool}`);

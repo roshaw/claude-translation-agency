@@ -519,7 +519,7 @@ const version = read('VERSION').trim();
 // Layer 3: the generator is idempotent (two runs identical).
 // Only runs if the port scaffold exists.
 {
-  if (exists('src') && exists('adapters/claude.json') && exists('tiers.json')) {
+  if (exists('.claude') && exists('adapters/claude.json') && exists('tiers.json')) {
     const tools = fs.readdirSync(path.join(ROOT, 'adapters'))
       .filter((f) => f.endsWith('.json')).map((f) => f.replace(/\.json$/, '')).sort();
 
@@ -543,7 +543,7 @@ const version = read('VERSION').trim();
       hard(`PORT L3 idempotent (${tool})`, !idErr && id.ok, idErr ? `errored: ${idErr}` : id.reason);
     }
   } else {
-    soft('PORT layers 1–3', true, 'skipped — port scaffold (src/ + adapters/) not present');
+    soft('PORT layers 1–3', true, 'skipped — port scaffold (.claude/ + adapters/) not present');
   }
 }
 

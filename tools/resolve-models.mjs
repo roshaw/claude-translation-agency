@@ -57,6 +57,15 @@ export function setTiers(tool, assignments) {
   return data;
 }
 
+// Mark every tier for a tool UNRESOLVED (null) — the generated agents then omit
+// `model:` and inherit the tool's configured default.
+export function clearTiers(tool) {
+  const data = readJson('tiers.json');
+  for (const tier of TIERS) if (data.tiers[tier]) data.tiers[tier][tool] = null;
+  fs.writeFileSync(TIERS_PATH, JSON.stringify(data, null, 2) + '\n');
+  return data;
+}
+
 function checkAll() {
   const data = readJson('tiers.json');
   const tools = new Set();
@@ -80,7 +89,12 @@ if (isMain) {
     process.exit(0);
   }
   const tool = argv.find((a) => !a.startsWith('--') && !a.includes('='));
-  if (!tool) { console.error('usage: resolve-models.mjs <tool> [strong=id mid=id cheap=id] [--cmd "..."] [--file path] | --check'); process.exit(1); }
+  if (!tool) { console.error('usage: resolve-models.mjs <tool> [strong=id mid=id cheap=id] [--clear] [--cmd "..."] [--file path] | --check'); process.exit(1); }
+  if (argv.includes('--clear')) {
+    clearTiers(tool);
+    console.log(`tiers.json: cleared ${tool} (all tiers unresolved -> agents inherit the tool's default model)`);
+    process.exit(0);
+  }
   const cmd = (() => { const i = argv.indexOf('--cmd'); return i >= 0 ? argv[i + 1] : undefined; })();
   const file = (() => { const i = argv.indexOf('--file'); return i >= 0 ? argv[i + 1] : undefined; })();
   const assignments = {};

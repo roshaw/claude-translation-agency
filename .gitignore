@@ -35,3 +35,7 @@ Thumbs.db
 # Node (only if a target project's tooling leaks in)
 node_modules/
 dist/
+
+# Porting-plan working documents (kept local, not committed)
+PORTING-PLAN.md
+PORTING-PLAN.translation-agency.md

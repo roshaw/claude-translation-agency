@@ -2,7 +2,7 @@
 
 > Ready-to-use Claude skills and agents that translate **any project or set of files into any language**, with a domain **specialization** you choose per run.
 
-[![Version](https://img.shields.io/badge/version-2.5.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.6.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 Translation Agency is a portable localization pipeline for [Claude Code](https://claude.com/claude-code) / Cowork. It was extracted and generalized from a production legal-fee-calculator localization system, whose three-tier "translator panel" and adversarial-QA design proved out over many real passes — then had all its project-specific hardwiring lifted out into settings so the same machinery works on a WordPress plugin, a React app's i18n, a folder of Markdown docs, or a batch of JSON files.
@@ -343,7 +343,7 @@ translation-agency/
 ├── README.md                     # this file
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 2.5.0
+├── VERSION                       # 2.6.0
 ├── package.json                  # npm test / npm start → tests/check.mjs (dev dep: ajv)
 ├── translation.config.json       # default settings
 ├── translation.config.schema.json # JSON Schema for the config (editor autocomplete + validation)
@@ -387,14 +387,16 @@ After editing anything in `.claude/`, run `npm run build:agents` to propagate to
 | **GitHub Copilot CLI** | `.github/agents/` | `gh` + Copilot CLI | `copilot`, then invoke the `translate` agent (delegates to workers via the `agent` tool). |
 | **OpenAI Codex CLI** | `.codex/` | openai.com Codex CLI | Codex has **no auto-spawn** — run the manual two-pass: `codex --profile mid` with `.codex/agents/translate-senior.md` to translate, then `codex --profile strong` with `.codex/agents/translate-lead.md` to review. See [`docs/porting/codex-notes.md`](docs/porting/codex-notes.md). |
 
-Model IDs in `tiers.json` are re-verify-at-port-time placeholders for the non-Claude tools. The
-cross-tool behavioral eval (Layer 5) is a pre-release runbook in
-[`examples/eval-fixture/README.md`](examples/eval-fixture/README.md); the full plan lives in
-[`PORTING-PLAN.md`](PORTING-PLAN.md) + [`PORTING-PLAN.translation-agency.md`](PORTING-PLAN.translation-agency.md).
+**Models are resolved dynamically, not hardcoded.** `npm run models -- <tool>` lists a tool's
+available models and writes your tier→model choices into `tiers.json` (see
+[`docs/porting/model-resolution.md`](docs/porting/model-resolution.md)). A tier left **unresolved**
+makes the generated agents **omit `model:` and inherit the tool's configured default** — so a tree
+works out of the box before you pin per-tier models. The cross-tool behavioral eval (Layer 5) is a
+pre-release runbook in [`examples/eval-fixture/README.md`](examples/eval-fixture/README.md).
 
 ## Versioning
 
-This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **2.5.0**.
+This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **2.6.0**.
 
 ## Contributing
 

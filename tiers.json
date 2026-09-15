@@ -3,27 +3,33 @@
   "tiers": {
     "strong": {
       "claude": "opus",
-      "opencode": "anthropic/claude-opus-4-1",
+      "opencode": null,
       "codex": "gpt-5",
       "copilot": "claude-opus-41"
     },
     "mid": {
       "claude": "sonnet",
-      "opencode": "anthropic/claude-sonnet-4-5",
+      "opencode": null,
       "codex": "gpt-5-mini",
       "copilot": "claude-sonnet-45"
     },
     "cheap": {
       "claude": "haiku",
-      "opencode": "anthropic/claude-haiku-4-5",
+      "opencode": null,
       "codex": "gpt-5-nano",
       "copilot": "claude-haiku-45"
     }
   },
   "prose": {
     "$comment": "How a tier is named in body prose (seam 5b). Claude keeps the historical model words.",
-    "strong": { "claude": "Opus" },
-    "mid": { "claude": "Sonnet" },
-    "cheap": { "claude": "Haiku" }
+    "strong": {
+      "claude": "Opus"
+    },
+    "mid": {
+      "claude": "Sonnet"
+    },
+    "cheap": {
+      "claude": "Haiku"
+    }
   }
 }

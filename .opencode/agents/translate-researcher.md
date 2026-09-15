@@ -1,7 +1,7 @@
 ---
 description: Terminology-research agent. Before the translator panel runs, it works out the CORRECT vocabulary for the material — the domain terms of art, product-specific nouns, and context-dependent words whose translation depends on what the product actually is — for each target language, and writes a reusable glossary the Senior and Lead then translate against. Uses the project's purpose/context + a sample of the real content + web research in the target language. Spawned by /translate on the first run for a project/language (or on --research). Produces projects/<slug>/glossary.csv and flags low-confidence terms into the run's queries report. It does NOT translate the whole surface — it decides terminology only.
 mode: subagent
-model: anthropic/claude-sonnet-4-5
+# tier: mid — model unresolved; inherits OpenCode's default (resolve: npm run models -- opencode)
 tools:
   read: true
   write: true

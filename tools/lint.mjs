@@ -14,11 +14,14 @@ import { UNITS, ROOT, tiers, adapter, loadUnit, outPath } from './lib.mjs';
 const REQUIRED = {
   'claude-agent': ['name', 'description', 'tools', 'model'],
   'claude-skill': ['name', 'description'],
-  'opencode-agent': ['description', 'mode', 'model', 'tools', 'permission'],
+  // `model` is intentionally NOT required: an unresolved tier omits it to inherit
+  // the tool's default. The model-resolution check below enforces presence+match
+  // when the tier IS resolved in tiers.json, and absence when it isn't.
+  'opencode-agent': ['description', 'mode', 'tools', 'permission'],
   'opencode-skill': ['description'],
-  'copilot-agent': ['name', 'description', 'model', 'tools'],
+  'copilot-agent': ['name', 'description', 'tools'],
   'copilot-skill': ['name', 'description', 'tools'],
-  'codex-agent': ['name', 'description', 'model', 'sandbox_mode'],
+  'codex-agent': ['name', 'description', 'sandbox_mode'],
   'codex-skill': ['name', 'description', 'sandbox_mode'],
 };
 
@@ -75,14 +78,20 @@ export function lintTool(tool) {
     const req = REQUIRED[`${flavor}-${u.kind}`] || [];
     for (const k of req) if (!top.has(k)) issues.push(`${rel}: missing required frontmatter key "${k}"`);
 
-    // model resolves via tiers.json (agents only)
+    // model resolves via tiers.json (agents only). A RESOLVED tier must pin the
+    // matching model; an UNRESOLVED tier (null/absent in tiers.json) must OMIT the
+    // model line so the tool inherits its default.
     if (u.kind === 'agent') {
       const { meta } = loadUnit(u);
       const expected = T.tiers[meta.tier] && T.tiers[meta.tier][tool];
-      const modelLine = fm.fence === '+++' ? `model = "${expected}"` : `model: ${expected}`;
-      if (!expected) issues.push(`${rel}: tier "${meta.tier}" has no model for ${tool}`);
-      else if (!fm.block.includes(modelLine)) {
-        issues.push(`${rel}: model line does not match tiers.json (${meta.tier} -> ${expected})`);
+      const hasModel = fm.fence === '+++' ? /(^|\n)model\s*=/.test(fm.block) : /(^|\n)model:/.test(fm.block);
+      if (expected) {
+        const modelLine = fm.fence === '+++' ? `model = "${expected}"` : `model: ${expected}`;
+        if (!fm.block.includes(modelLine)) {
+          issues.push(`${rel}: model line does not match tiers.json (${meta.tier} -> ${expected})`);
+        }
+      } else if (hasModel) {
+        issues.push(`${rel}: has a model but tiers.json marks ${meta.tier}/${tool} unresolved (should omit model to inherit the default)`);
       }
     }
 

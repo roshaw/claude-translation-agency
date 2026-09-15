@@ -9,6 +9,24 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [2.6.0] — 2026-09-15
+
+### Added
+- **Inherit-default model fallback.** A tier left **unresolved** in `tiers.json` (null/absent) now makes
+  the generated agent **omit `model:`** and inherit the tool's configured default, with a `# tier: …`
+  annotation — so a generated tree works before any IDs are pinned, and no stale placeholder ships.
+  `npm run models -- <tool> --clear` marks a tool unresolved. The Layer-2 lint enforces the contract
+  (resolved ⇒ model pinned & matching; unresolved ⇒ model omitted). Docs:
+  [`docs/porting/model-resolution.md`](docs/porting/model-resolution.md).
+- **OpenCode behavioral validation (Layer 5, partial).** The ported `translate-senior` translated the
+  eval-fixture on the real OpenCode CLI (weakest free model) — glossary term, formal register, and the
+  `{username}` placeholder all correct; `eval-assert.mjs` graded **1** (a defensible "Dashboard"
+  loanword). OpenCode's tiers are now left unresolved (inherit the configured default).
+
+### Changed
+- The porting-plan working documents (`PORTING-PLAN*.md`) are no longer tracked (kept local, git-ignored).
+  The technical port docs under [`docs/porting/`](docs/porting/) remain the tracked reference.
+
 ## [2.5.0] — 2026-09-15
 
 ### Changed
@@ -508,7 +526,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.5.0...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.6.0...HEAD
+[2.6.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.5.0...v2.6.0
 [2.5.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.4.1...v2.5.0
 [2.4.1]: https://github.com/roshaw/claude-translation-agency/compare/v2.4.0...v2.4.1
 [2.4.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.3.0...v2.4.0

@@ -1,7 +1,7 @@
 ---
 description: Haiku-tier worker for the translator panel. Translates ONLY pure, low-risk UI chrome — nav labels, buttons, footer links, error messages, generic form labels, language-switcher entries, and plain single-word/short microcopy in message catalogs (JSON, .po/.pot, .ts/.js, .arb, etc.). Never touches domain terminology, legal/medical/financial wording, citations, identity tokens, or any long-form prose. Spawned by the translate-lead within /translate for incremental low-risk diffs. Returns a verified diff plus a one-line summary per file. Cheap by design — the chrome subset is the safest possible translation work; the Lead's smoke check catches any miss.
 mode: subagent
-model: anthropic/claude-haiku-4-5
+# tier: cheap — model unresolved; inherits OpenCode's default (resolve: npm run models -- opencode)
 tools:
   read: true
   write: false

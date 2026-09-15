@@ -1,7 +1,7 @@
 ---
 description: Opus-tier project manager for the translator panel. Spawned once per run by the /translate skill. Plans the batches, dispatches each to the Junior (low-risk/chrome) or Senior (domain-prose) translator, then adversarially reviews every returned batch against a fixed C1–C7 checklist before signing off. Loads the run's specialization module (default `general`) so the terminology check (C2) is domain-aware. Mirrors a real localization-agency lead — plan, dispatch, QA, sign off — it is NOT a translator itself. Catches the failure classes a single-writer flow leaks: source-language leftovers, wrong terminology, altered identity tokens (numbers, code, citations), dropped placeholders, broken markup, and agent self-report drift.
 mode: subagent
-model: anthropic/claude-opus-4-1
+# tier: strong — model unresolved; inherits OpenCode's default (resolve: npm run models -- opencode)
 tools:
   read: true
   write: false

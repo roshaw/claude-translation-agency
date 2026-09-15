@@ -18,7 +18,18 @@ npm run models -- <tool>                         # LIST the tool's available mod
 npm run models -- <tool> --cmd "<command>"       #   ...from a custom discovery command
 npm run models -- <tool> --file <path>           #   ...from a file (one model id per line)
 npm run models -- <tool> strong=<id> mid=<id> cheap=<id>   # WRITE the choices into tiers.json
+npm run models -- <tool> --clear                 # UNRESOLVE all tiers → agents inherit the tool's default
 ```
+
+## Unresolved tiers inherit the tool's default
+
+A tier whose model is `null`/absent in `tiers.json` is **unresolved**. The generator then **omits
+`model:`** from that agent and leaves a `# tier: <tier> — model unresolved; inherits …` annotation, so
+the agent uses whatever default the tool is configured with. This is what makes a generated tree work
+**before** you pin any IDs (and avoids shipping stale/placeholder IDs). Pin real per-tier models later
+with the `set` form to regain the panel's cheap/expensive tiering. The Layer-2 lint enforces the
+contract both ways: a resolved tier **must** pin the matching model; an unresolved tier **must** omit
+it. `--clear <tool>` sets every tier for a tool back to unresolved.
 
 (With npm, the `--` passes the args through to the script; calling `node tools/resolve-models.mjs …`
 directly needs no `--`.)

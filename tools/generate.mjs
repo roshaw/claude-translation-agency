@@ -50,7 +50,11 @@ const RENDERERS = {
     const granted = new Set(
       meta.tools.map((t) => ad.toolNames[t]).filter((n) => n) // drop tools with no OpenCode equivalent
     );
-    const lines = ['---', `description: ${yamlEscapeInline(meta.description)}`, 'mode: subagent', `model: ${model}`];
+    const lines = ['---', `description: ${yamlEscapeInline(meta.description)}`, 'mode: subagent'];
+    // Resolved tier -> pin the model; unresolved -> omit it (inherit OpenCode's
+    // configured default) and annotate the intended tier.
+    if (model) lines.push(`model: ${model}`);
+    else lines.push(`# tier: ${meta.tier} — model unresolved; inherits OpenCode's default (resolve: npm run models -- opencode)`);
     // tools map: enable granted, disable the rest of the known tool set (real restriction).
     lines.push('tools:');
     for (const t of ad.allTools) lines.push(`  ${t}: ${granted.has(t)}`);
@@ -68,15 +72,12 @@ const RENDERERS = {
   // GitHub Copilot CLI — .github/agents/<name>.agent.md (YAML frontmatter).
   // Workers are subagents (not user-invocable; reached via the `agent` tool).
   'copilot-agent'(meta, ad, T) {
-    return [
-      '---',
-      `name: ${meta.name}`,
-      `description: ${yamlEscapeInline(meta.description)}`,
-      `model: ${T.tiers[meta.tier].copilot}`,
-      `tools: ${ad.toolsValue}`,
-      'user-invocable: false',
-      '---',
-    ].join('\n') + '\n';
+    const model = T.tiers[meta.tier].copilot;
+    const lines = ['---', `name: ${meta.name}`, `description: ${yamlEscapeInline(meta.description)}`];
+    if (model) lines.push(`model: ${model}`);
+    else lines.push(`# tier: ${meta.tier} — model unresolved; inherits Copilot's default (resolve: npm run models -- copilot)`);
+    lines.push(`tools: ${ad.toolsValue}`, 'user-invocable: false', '---');
+    return lines.join('\n') + '\n';
   },
   // Skills become user-invocable Copilot agents.
   'copilot-skill'(meta, ad) {

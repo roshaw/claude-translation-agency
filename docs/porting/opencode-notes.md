@@ -56,6 +56,16 @@ Run on the actual `opencode` CLI, not just doc-reading:
   than the offline lint.
 - **A live `opencode run` executes and produces correct output** — a chrome-translation smoke prompt
   returned proper German (`Einstellungen` / `Speichern` / `Alle Rechte vorbehalten`).
+- **Behavioral fixture smoke passed.** Running the ported `translate-senior` on the eval-fixture via
+  `opencode run` (on the weak free model `nemotron-3.5-lightning-free`) produced a correct German
+  `de.json` — glossary term honored (`melden Sie sich an`, not `einloggen`), formal register (Sie),
+  `{username}` placeholder preserved — grading **1 violation** on `eval-assert.mjs` (`nav.dashboard`
+  kept as the German loanword "Dashboard", a defensible choice, not a source-leftover). So the port is
+  behaviorally validated end-to-end on OpenCode even at the lowest model tier.
+- **Models inherit the default (unresolved).** OpenCode's tiers are left unresolved in `tiers.json`, so
+  the generated agents omit `model:` and inherit whatever model OpenCode is configured with — no
+  hardcoded IDs, no auth needed to get a working tree. Pin per-tier models with `npm run models` when
+  you want the cheap/expensive tiering back.
 - **Finding — subagents aren't directly runnable via `run --agent`.** `opencode run --agent
   translate-junior` warns *"is a subagent, not a primary agent. Falling back to default agent"* and
   runs the default primary instead. Subagents are reachable only through a **primary** agent's Task

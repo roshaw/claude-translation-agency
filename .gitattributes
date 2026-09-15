@@ -1,0 +1,4 @@
+# Force LF for all text files. The port's byte-level no-regression test compares
+# raw bytes, so a CRLF smudge (core.autocrlf=true flipping line endings on a
+# branch switch) would break it. Pinning LF keeps generated trees == .claude/.
+* text=auto eol=lf

@@ -9,6 +9,16 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [2.6.2] — 2026-09-15
+
+### Changed
+- **README reframed as tool-independent** (was Claude-only in many places). Tagline, intro, the
+  panel/tier table (models are now labelled per-tool tiers), Features (new "Tool-independent" bullet),
+  Requirements, Install, and Usage now describe running in **Claude Code or OpenCode** (both validated)
+  with generated Codex/Copilot trees, instead of assuming Claude Code throughout.
+- **`.gitattributes` forces LF** for all text files, so the port's byte-level no-regression test can't
+  be broken by a CRLF smudge (`core.autocrlf` flipping line endings on a branch switch).
+
 ## [2.6.1] — 2026-09-15
 
 ### Changed
@@ -534,7 +544,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.6.1...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.6.2...HEAD
+[2.6.2]: https://github.com/roshaw/claude-translation-agency/compare/v2.6.1...v2.6.2
 [2.6.1]: https://github.com/roshaw/claude-translation-agency/compare/v2.6.0...v2.6.1
 [2.6.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.5.0...v2.6.0
 [2.5.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.4.1...v2.5.0

@@ -1,27 +1,33 @@
 # Translation Agency
 
-> Ready-to-use Claude skills and agents that translate **any project or set of files into any language**, with a domain **specialization** you choose per run.
+> Ready-to-use agents and skills that translate **any project or set of files into any language**, with a domain **specialization** you choose per run — run them in **Claude Code** or **OpenCode** (Codex and Copilot trees are generated too).
 
-[![Version](https://img.shields.io/badge/version-2.6.1-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.6.2-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
-Translation Agency is a portable localization pipeline for [Claude Code](https://claude.com/claude-code) / Cowork. It was extracted and generalized from a production legal-fee-calculator localization system, whose three-tier "translator panel" and adversarial-QA design proved out over many real passes — then had all its project-specific hardwiring lifted out into settings so the same machinery works on a WordPress plugin, a React app's i18n, a folder of Markdown docs, or a batch of JSON files.
+Translation Agency is a portable, tool-independent localization pipeline. It runs its three-tier "translator panel" in [**Claude Code**](https://claude.com/claude-code) / Cowork (the authored source of truth) **or in [OpenCode](https://opencode.ai)** — and generates ready trees for the **OpenAI Codex CLI** and **GitHub Copilot CLI** from the same source (see [Which tool runs it?](#which-tool-runs-it-claude-code-or-opencode)). It was extracted and generalized from a production legal-fee-calculator localization system, whose panel and adversarial-QA design proved out over many real passes — then had all its project-specific hardwiring lifted out into settings so the same machinery works on a WordPress plugin, a React app's i18n, a folder of Markdown docs, or a batch of JSON files.
 
 ## Why a "panel" and not a single translator
 
 A single-writer translation flow reliably leaks a known set of errors: source-language strings left un-translated, wrong terminology, dropped `{placeholders}`, broken markup, and the writer's own "looks fine to me" blind spots. Translation Agency splits **writing** from **adversarial review** across three agents, the way a real localization agency does:
 
-| Tier | Agent | Model | Role |
+| Tier | Agent | Model (Claude) | Role |
 |---|---|---|---|
 | **Lead** | `translate-lead` | Opus | Orchestrates each run, dispatches batches, and adversarially reviews every result against a fixed **C1–C7** checklist before signing off. Runs final blind-spot sweeps. Not a translator itself. |
 | **Senior** | `translate-senior` | Sonnet | Translates domain-prose and any substantive surface. Spawned by the Lead. |
 | **Junior** | `translate-junior` | Haiku | Translates only low-risk UI chrome; escalates anything domain-critical. Cheap by design. |
 | **Researcher** | `translate-researcher` | Sonnet | Optional pre-step: works out the correct vocabulary per language from the project's context + content, and writes a reusable glossary the panel translates against. |
 
-The `translate` skill computes scope and per-batch tier, (optionally) runs the Researcher first, spawns the Lead **once**, and the Lead drives the workers and QA. One final verify/build runs at the end.
+> The **Model** column shows the Claude Code defaults (Opus/Sonnet/Haiku). These are **tiers**
+> (`strong`/`mid`/`cheap`) — on OpenCode, Codex, and Copilot each tier maps to a model you choose:
+> by default the agents inherit the tool's configured model, or you pin per-tier models with
+> `npm run models`. See [Which tool runs it?](#which-tool-runs-it-claude-code-or-opencode).
+
+The `translate` entry point (a skill in Claude Code, a `/command` in OpenCode) computes scope and per-batch tier, (optionally) runs the Researcher first, spawns the Lead **once**, and the Lead drives the workers and QA. One final verify/build runs at the end.
 
 ## Features
 
+- **Tool-independent** — run it in **Claude Code** or **OpenCode** (both validated); Codex and Copilot trees are generated from the same source. Authored once in `.claude/`, generated everywhere else — no N hand-forked copies.
 - **Any project, any files, any language** — codebase i18n *and* standalone documents.
 - **Context-aware** — you describe what the product is; the translator uses it to pick the right *sense* of ambiguous words ("Book" = reserve vs. the object).
 - **Terminology research** — an optional research pass builds a reusable per-language glossary before translating, so terms of art are correct and consistent.
@@ -32,23 +38,39 @@ The `translate` skill computes scope and per-batch tier, (optionally) runs the R
 - **Quality gates every run** — zero source-language leftovers, identity tokens verbatim, placeholders & markup preserved, correct terminology/framing, and a completeness gate that never lets a full run finish with a silent gap.
 - **Coverage & quality audit** — `/translate-audit` checks *every* existing language against the union of all keys and reports what's missing, where it's present, and how to fix it — including keys that exist in a translation but are missing from the source. Add `--deep` for a quality pass: the Lead runs its C1–C7 review over the *existing* translations and flags polish opportunities (weak terminology, machine-translation stiffness, register drift) with suggested rewrites. Read-only; it never edits a file (`--deep --fix` hands the flagged set to `/translate`).
 - **Projects registry + memory** — keeps a **local** (git-ignored) record of every project it translates (`projects/registry.json`) plus per-project notes (terminology decisions, quirks, run log) that each run reads and updates; private client data stays off the public repo.
-- **Portable** — no hardcoded paths, locales, or domains; everything concrete comes from config + the chosen specialization.
+- **Portable** — no hardcoded paths, locales, or domains; everything concrete comes from config + the chosen specialization + the per-tool model tiers.
 
 ## Requirements
 
-Claude Code or the Claude desktop app (Cowork). The skills and agents live in `.claude/` and are picked up automatically when Claude runs inside this folder (or when you point `translate --path` at another project).
+Any one of the supported agent CLIs:
+
+- **[Claude Code](https://claude.com/claude-code)** or the Claude desktop app (Cowork) — the primary path; the agents/skills in `.claude/` are picked up automatically. *(Validated.)*
+- **[OpenCode](https://opencode.ai)** — runs the generated `.opencode/` tree. *(Validated.)*
+- **OpenAI Codex CLI** or **GitHub Copilot CLI** — run the generated `.codex/` / `.github/` trees. *(Generated + lint-clean, not yet run — see [Which tool runs it?](#which-tool-runs-it-claude-code-or-opencode).)*
+
+**Node 18+** is only needed to regenerate the non-Claude trees and to run the test suite
+(`npm install` pulls one dev dependency, `ajv`). Running the panel itself needs just your agent CLI.
 
 ## Install
 
-Clone the repo and either run Claude from inside it, or copy the pieces into a target project:
+Clone the repo, then use it with your CLI of choice:
 
 ```bash
 git clone https://github.com/roshaw/claude-translation-agency.git
+cd claude-translation-agency
+npm install          # only if you'll regenerate other tools' trees or run `npm test`
 ```
 
-To use it against another project, copy `.claude/agents/`, `.claude/skills/`, and `specializations/` (plus a `translation.config.json`) into that project — or just run `translate --path <that project>` from here.
+- **Claude Code:** run Claude from inside the repo (the `.claude/` agents/skills load automatically), or copy `.claude/agents/`, `.claude/skills/`, and `specializations/` (plus a `translation.config.json`) into another project.
+- **OpenCode / Codex / Copilot:** run `npm run build:agents` to (re)generate `.opencode/`, `.codex/`, and `.github/` from `.claude/`, then follow [Which tool runs it?](#which-tool-runs-it-claude-code-or-opencode).
+
+Either way, point a run at any project with `--path` (e.g. `/translate --path <that project>`), so you can translate other codebases without copying anything.
 
 ## Usage
+
+The four commands below are written as `/translate…` — the invocation is **identical in Claude Code
+and OpenCode** (both expose them as `/`-commands). In Codex and Copilot you invoke the corresponding
+agent instead; see [Which tool runs it?](#which-tool-runs-it-claude-code-or-opencode).
 
 ```bash
 # One-time setup: generate translation.config.json for a project (detects source lang, formats, targets)
@@ -258,7 +280,7 @@ without interrupting you; `high-stakes` also asks interactively for a few legal/
 terms; `off` best-guesses silently). See [Context, research & questions](#context-research--questions).
 
 **Attribution — `creditInCommit` (default `false`).** Every run's report already credits the tool
-in Claude's summary back to you (*"Translated with Translation Agency v… — <repo link>"*) — that's
+in the summary back to you (*"Translated with Translation Agency v… — <repo link>"*) — that's
 always on and never touches your files. `creditInCommit` is the one optional knob: set it to `true`
 and, when a run actually commits (in `inplace`/`catalog` mode in a git repo), the translation commit
 gets a `Translated-with: Translation Agency v… (<repo link>)` trailer line — attribution in your
@@ -343,7 +365,7 @@ translation-agency/
 ├── README.md                     # this file
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 2.6.1
+├── VERSION                       # 2.6.2
 ├── package.json                  # npm test / npm start → tests/check.mjs (dev dep: ajv)
 ├── translation.config.json       # default settings
 ├── translation.config.schema.json # JSON Schema for the config (editor autocomplete + validation)
@@ -460,7 +482,7 @@ npm test                      # everything above + the rest of the invariant sui
 
 ## Versioning
 
-This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **2.6.1**.
+This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **2.6.2**.
 
 ## Contributing
 

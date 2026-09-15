@@ -16,22 +16,35 @@ const REQUIRED = {
   'claude-skill': ['name', 'description'],
   'opencode-agent': ['description', 'mode', 'model', 'tools', 'permission'],
   'opencode-skill': ['description'],
+  'copilot-agent': ['name', 'description', 'model', 'tools'],
+  'copilot-skill': ['name', 'description', 'tools'],
+  'codex-agent': ['name', 'description', 'model', 'sandbox_mode'],
+  'codex-skill': ['name', 'description', 'sandbox_mode'],
 };
 
 const AGENT_NAMES = new Set(UNITS.filter((u) => u.kind === 'agent').map((u) => u.name));
 
-// Split ---\n..\n---\n; return { block, body } (block = frontmatter text w/o fences).
+// Split a frontmatter fence (--- for YAML, +++ for TOML); return { block, body, fence }.
 function splitFm(text) {
-  if (!text.startsWith('---\n')) return null;
-  const close = text.indexOf('\n---\n', 3);
+  const fence = text.startsWith('---\n') ? '---' : text.startsWith('+++\n') ? '+++' : null;
+  if (!fence) return null;
+  const close = text.indexOf(`\n${fence}\n`, fence.length);
   if (close === -1) return null;
-  return { block: text.slice(4, close), body: text.slice(close + 5) };
+  return { fence, block: text.slice(fence.length + 1, close), body: text.slice(close + fence.length + 2) };
 }
 
-// Top-level keys (col 0 `key:`) and, for map fields, their indented child keys.
-function fmKeys(block) {
+// Top-level keys and (YAML only) indented child keys of map fields.
+// YAML uses `key:`; TOML uses `key = value`.
+function fmKeys(block, fence) {
   const top = new Set();
   const children = {}; // parentKey -> Set(childKey)
+  if (fence === '+++') {
+    for (const line of block.split('\n')) {
+      const t = line.match(/^([A-Za-z0-9_-]+)\s*=/);
+      if (t) top.add(t[1]);
+    }
+    return { top, children };
+  }
   let parent = null;
   for (const line of block.split('\n')) {
     const t = line.match(/^([A-Za-z0-9_-]+):(.*)$/);
@@ -56,7 +69,7 @@ export function lintTool(tool) {
     const text = fs.readFileSync(abs, 'utf8');
     const fm = splitFm(text);
     if (!fm) { issues.push(`${rel}: unparseable frontmatter`); continue; }
-    const { top, children } = fmKeys(fm.block);
+    const { top, children } = fmKeys(fm.block, fm.fence);
 
     // required fields
     const req = REQUIRED[`${flavor}-${u.kind}`] || [];
@@ -66,8 +79,9 @@ export function lintTool(tool) {
     if (u.kind === 'agent') {
       const meta = readJson(srcMetaPath(u));
       const expected = T.tiers[meta.tier] && T.tiers[meta.tier][tool];
+      const modelLine = fm.fence === '+++' ? `model = "${expected}"` : `model: ${expected}`;
       if (!expected) issues.push(`${rel}: tier "${meta.tier}" has no model for ${tool}`);
-      else if (!fm.block.includes(`model: ${expected}`)) {
+      else if (!fm.block.includes(modelLine)) {
         issues.push(`${rel}: model line does not match tiers.json (${meta.tier} -> ${expected})`);
       }
     }

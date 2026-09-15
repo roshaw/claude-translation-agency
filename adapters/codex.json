@@ -1,0 +1,46 @@
+{
+  "$comment": "Adapter for OpenAI Codex CLI. FINDING (verified Sept 2026): Codex has NO native spawnable per-agent subagents — its primitives are config.toml [profiles] + AGENTS.md instructions + coarse sandbox_mode. So this port is a DIFFERENT shape than OpenCode/Copilot: per-role instruction docs under .codex/agents/<name>.md (TOML +++ frontmatter) used via profiles / manual selection / an external orchestrator, PLUS a generated .codex/config.toml with strong/mid/cheap tier profiles. The panel's writer!=reviewer separation is NOT automatic on Codex. See docs/porting/codex-notes.md. Re-verify model IDs.",
+  "tool": "codex",
+  "paths": {
+    "agent": ".codex/agents/{name}.md",
+    "skill": ".codex/agents/{name}.md"
+  },
+  "frontmatter": {
+    "flavor": "codex"
+  },
+  "sandboxMode": "workspace-write",
+  "postGenerate": "codex-config",
+  "body": [
+    [".claude/skills/translate-add-locale/SKILL.md", ".codex/agents/translate-add-locale.md"],
+    [".claude/skills/translate-audit/SKILL.md", ".codex/agents/translate-audit.md"],
+    [".claude/skills/translate-init/SKILL.md", ".codex/agents/translate-init.md"],
+    [".claude/skills/translate/SKILL.md", ".codex/agents/translate.md"],
+    [".claude/agents/", ".codex/agents/"],
+    ["Agent({ subagent_type:", "hand off to the agent ({ agent:"],
+    ["Agent({subagent_type:", "hand off to the agent ({agent:"],
+    ["Agent({", "hand off to the agent ({"],
+    ["subagent_type:", "agent:"],
+    ["(Agent tool)", "(delegated agent)"],
+    ["general-purpose Agent", "general-purpose agent"],
+    ["`Agent`", "delegated agent"],
+    ["Opus-tier", "strong-tier"],
+    ["Haiku-tier", "cheap-tier"],
+    [", Opus)", ", strong tier)"],
+    [", Sonnet)", ", mid tier)"],
+    [", Haiku)", ", cheap tier)"],
+    ["(Opus)", "(strong tier)"],
+    ["`WebSearch` / `WebFetch`", "web search / fetch"],
+    ["`WebSearch`/`WebFetch`", "web search / fetch"],
+    ["`TaskCreate` / `TaskUpdate` / `TaskList` / `TaskGet`", "a task checklist"],
+    ["`WebSearch`", "web search"],
+    ["`WebFetch`", "web fetch"],
+    ["`TaskCreate`", "a task checklist"],
+    ["`TaskUpdate`", "a task checklist"],
+    ["`TaskList`", "a task checklist"],
+    ["`TaskGet`", "a task checklist"],
+    ["`AskUserQuestion`", "an interactive question"],
+    ["AskUserQuestion", "an interactive question"],
+    ["WebSearch", "web search"],
+    ["WebFetch", "web fetch"]
+  ]
+}

@@ -9,6 +9,26 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [2.4.0] — 2026-09-15
+
+### Added
+- **Tool-independence port — Copilot + Codex targets (Phase 6).** The panel now generates trees for
+  **all four** tools from the one `src/` source of truth; `npm test` is 34 checks, green.
+  - **GitHub Copilot CLI** (`adapters/copilot.json`) — agents + skills → `.github/agents/<name>.agent.md`
+    (verified vs GitHub docs, Sept 2026): YAML frontmatter, delegation via the `agent` tool, workers
+    `user-invocable: false`. Notes: [`docs/porting/copilot-notes.md`](docs/porting/copilot-notes.md).
+  - **OpenAI Codex CLI** (`adapters/codex.json`) — generated `.codex/config.toml` tier **profiles** +
+    per-role instruction docs `.codex/agents/<name>.md` with TOML `+++` frontmatter; GPT-tier prose
+    neutralized. The linter now parses TOML frontmatter too.
+
+### Changed
+- **Plan-correcting finding: Codex has no native spawnable subagents.** The assumed
+  `.codex/agents/*.toml` + `developer_instructions` format does not exist; Codex uses `config.toml`
+  profiles + `AGENTS.md` + coarse `sandbox_mode`. The Codex port is therefore a manual two-pass
+  (writer profile → reviewer profile) or external-orchestrator shape, not an automatic panel — a
+  seventh seam ("target lacks spawnable subagents"). Recorded in the porting plan +
+  [`docs/porting/codex-notes.md`](docs/porting/codex-notes.md).
+
 ## [2.3.0] — 2026-09-15
 
 ### Added
@@ -454,7 +474,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.3.0...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.4.0...HEAD
+[2.4.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.3.0...v2.4.0
 [2.3.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.0.0...v2.1.0

@@ -1,0 +1,42 @@
+{
+  "$comment": "Adapter for GitHub Copilot CLI. Both agents AND skills -> .github/agents/<name>.agent.md (YAML frontmatter). Verified vs docs.github.com/en/copilot/reference/custom-agents-configuration (Sept 2026): fields name/description/tools/model/user-invocable; delegation via the `agent` tool; body = system prompt (<=30k chars). Copilot has no /slash commands, so slash refs are left as logical command names (see docs/porting/copilot-notes.md). tools:[\"*\"] grants all — fine-grained alias restriction is a pending refinement (Copilot's tool-alias vocabulary is not fully documented).",
+  "tool": "copilot",
+  "paths": {
+    "agent": ".github/agents/{name}.agent.md",
+    "skill": ".github/agents/{name}.agent.md"
+  },
+  "frontmatter": {
+    "flavor": "copilot"
+  },
+  "toolsValue": "[\"*\"]",
+  "body": [
+    [".claude/skills/translate-add-locale/SKILL.md", ".github/agents/translate-add-locale.agent.md"],
+    [".claude/skills/translate-audit/SKILL.md", ".github/agents/translate-audit.agent.md"],
+    [".claude/skills/translate-init/SKILL.md", ".github/agents/translate-init.agent.md"],
+    [".claude/skills/translate/SKILL.md", ".github/agents/translate.agent.md"],
+    [".claude/agents/translate-lead.md", ".github/agents/translate-lead.agent.md"],
+    [".claude/agents/translate-senior.md", ".github/agents/translate-senior.agent.md"],
+    [".claude/agents/translate-junior.md", ".github/agents/translate-junior.agent.md"],
+    [".claude/agents/translate-researcher.md", ".github/agents/translate-researcher.agent.md"],
+    ["Agent({ subagent_type:", "the agent tool ({ agent:"],
+    ["Agent({subagent_type:", "the agent tool ({agent:"],
+    ["Agent({", "the agent tool ({"],
+    ["subagent_type:", "agent:"],
+    ["(Agent tool)", "(the agent tool)"],
+    ["general-purpose Agent", "general-purpose agent"],
+    ["`Agent`", "`agent`"],
+    ["`WebSearch` / `WebFetch`", "web search / fetch"],
+    ["`WebSearch`/`WebFetch`", "web search / fetch"],
+    ["`TaskCreate` / `TaskUpdate` / `TaskList` / `TaskGet`", "a task checklist"],
+    ["`WebSearch`", "web search"],
+    ["`WebFetch`", "web fetch"],
+    ["`TaskCreate`", "a task checklist"],
+    ["`TaskUpdate`", "a task checklist"],
+    ["`TaskList`", "a task checklist"],
+    ["`TaskGet`", "a task checklist"],
+    ["`AskUserQuestion`", "an interactive question"],
+    ["AskUserQuestion", "an interactive question"],
+    ["WebSearch", "web search"],
+    ["WebFetch", "web fetch"]
+  ]
+}

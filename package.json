@@ -1,12 +1,16 @@
 {
   "private": true,
   "name": "translation-agency",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "type": "module",
   "scripts": {
     "test": "node tests/check.mjs",
     "start": "node tests/check.mjs",
-    "eval:assert": "node tests/eval-assert.mjs"
+    "eval:assert": "node tests/eval-assert.mjs",
+    "extract:agents": "node tools/extract.mjs",
+    "build:agents": "node tools/generate.mjs",
+    "lint:agents": "node tools/lint.mjs",
+    "check:agents": "node tests/no-regression.mjs"
   },
   "devDependencies": {
     "ajv": "^8"

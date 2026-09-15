@@ -6,11 +6,11 @@
     "skill": ".claude/skills/{name}/SKILL.md"
   },
   "frontmatter": {
+    "flavor": "claude",
     "syntax": "yaml",
-    "agentFields": ["name", "description", "tools", "model"],
-    "skillFields": ["name", "description"],
     "toolsSeparator": ", "
   },
+  "body": [],
   "seams": {
     "$comment": "Seam-3 tool-name map: how each abstract tool renders for this tool. Universal tools (Read/Write/Edit/Grep/Glob/Bash) are identity and omitted. Seams 2/4/5/6 are handled by the generator via tiers.json + paths above; body-token rendering lands in Phase 3.",
     "tools": {

@@ -1,43 +1,55 @@
 #!/usr/bin/env node
-// Layer 1 — golden regression. Proves the generator reproduces the authored
-// .claude/ tree BYTE-FOR-BYTE from src/ + adapters/claude.json + tiers.json.
-// This is the guard that answers "did the refactor break the working tool."
+// Layer 1 + Layer 3 — regression / equivalence / idempotence guards.
 //
-// Exports check() so tests/check.mjs can fold it into `npm test`; also runnable
-// standalone: `node tests/no-regression.mjs`.
+// Layer 1 (no-regression): the generator reproduces each tool's COMMITTED tree
+//   byte-for-byte from src/ + adapters/<tool>.json + tiers.json. For `claude`
+//   the committed tree IS the authored .claude/, so this is the "did we break the
+//   working tool" gate. For other tools it proves the committed tree hasn't
+//   drifted from src (no hand-edits leaked in).
+// Layer 3 (idempotence): generating twice yields identical output (determinism).
+//
+// Pure/offline. Exported for tests/check.mjs; also runnable standalone.
 
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pathToFileURL } from 'node:url';
 import { ROOT } from '../tools/lib.mjs';
 import { generateTool } from '../tools/generate.mjs';
 
-// Compare generated claude output (to a temp dir) against the live .claude tree.
-// Returns { ok, reason, details }.
-export function check() {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ta-nrg-'));
+function listTools() {
+  return fs.readdirSync(path.join(ROOT, 'adapters'))
+    .filter((f) => f.endsWith('.json')).map((f) => f.replace(/\.json$/, ''));
+}
+
+// A tool tree is "committed" if at least one of its expected output files exists.
+function treePresent(written) {
+  return Object.keys(written).some((rel) => fs.existsSync(path.join(ROOT, rel)));
+}
+
+// Compare a freshly generated tree (in a temp dir) against the live/committed files.
+export function checkTool(tool) {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), `ta-nrg-${tool}-`));
   try {
-    const written = generateTool('claude', tmp);
+    const written = generateTool(tool, tmp);
+    if (!treePresent(written)) return { skipped: true, reason: `no committed ${tool} tree` };
     const mismatches = [];
     for (const rel of Object.keys(written)) {
       const live = path.join(ROOT, rel);
-      if (!fs.existsSync(live)) { mismatches.push(`${rel} (no live file to compare)`); continue; }
+      if (!fs.existsSync(live)) { mismatches.push(`${rel} (not committed)`); continue; }
       const a = fs.readFileSync(live);
       const b = fs.readFileSync(path.join(tmp, rel));
       if (!a.equals(b)) {
-        // find first differing byte for a useful message
-        const len = Math.min(a.length, b.length);
-        let i = 0;
+        const len = Math.min(a.length, b.length); let i = 0;
         while (i < len && a[i] === b[i]) i++;
-        mismatches.push(`${rel} (differs at byte ${i}; live ${a.length}B vs gen ${b.length}B)`);
+        mismatches.push(`${rel} (differs at byte ${i}; committed ${a.length}B vs gen ${b.length}B)`);
       }
     }
     const n = Object.keys(written).length;
     return {
       ok: mismatches.length === 0,
       reason: mismatches.length === 0
-        ? `all ${n} generated claude files are byte-identical to .claude/`
+        ? `all ${n} generated ${tool} files match the committed tree`
         : `mismatches: ${mismatches.join('; ')}`,
     };
   } finally {
@@ -45,9 +57,36 @@ export function check() {
   }
 }
 
+// Generate twice; assert byte-identical output (deterministic generator).
+export function idempotent(tool) {
+  const a = fs.mkdtempSync(path.join(os.tmpdir(), `ta-idem-a-${tool}-`));
+  const b = fs.mkdtempSync(path.join(os.tmpdir(), `ta-idem-b-${tool}-`));
+  try {
+    const wa = generateTool(tool, a);
+    const wb = generateTool(tool, b);
+    for (const rel of Object.keys(wa)) {
+      if (wa[rel] !== wb[rel]) return { ok: false, reason: `${tool}: ${rel} differs between runs` };
+    }
+    return { ok: true, reason: `${tool}: two runs identical (${Object.keys(wa).length} files)` };
+  } finally {
+    try { fs.rmSync(a, { recursive: true, force: true }); fs.rmSync(b, { recursive: true, force: true }); } catch { /* best-effort */ }
+  }
+}
+
+// Back-compat: claude-only check used by earlier wiring.
+export function check() { return checkTool('claude'); }
+
 const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (isMain) {
-  const { ok, reason } = check();
-  console.log(`${ok ? 'PASS' : 'FAIL'}  NO-REGRESSION  ${reason}`);
-  process.exit(ok ? 0 : 1);
+  let bad = 0;
+  for (const t of listTools()) {
+    const r = checkTool(t);
+    if (r.skipped) { console.log(`SKIP  no-regression(${t})  ${r.reason}`); continue; }
+    console.log(`${r.ok ? 'PASS' : 'FAIL'}  no-regression(${t})  ${r.reason}`);
+    if (!r.ok) bad++;
+    const i = idempotent(t);
+    console.log(`${i.ok ? 'PASS' : 'FAIL'}  idempotent(${t})  ${i.reason}`);
+    if (!i.ok) bad++;
+  }
+  process.exit(bad ? 1 : 0);
 }

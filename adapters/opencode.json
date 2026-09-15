@@ -1,0 +1,60 @@
+{
+  "$comment": "Adapter descriptor for OpenCode. Agents -> .opencode/agents/<name>.md (mode: subagent); skills -> .opencode/commands/<name>.md (/name). Verified against opencode.ai/docs (Sept 2026): YAML frontmatter, tools map, permission map, @mention/Task-tool subagent invocation. Re-verify model IDs at port time.",
+  "tool": "opencode",
+  "paths": {
+    "agent": ".opencode/agents/{name}.md",
+    "skill": ".opencode/commands/{name}.md"
+  },
+  "frontmatter": {
+    "flavor": "opencode"
+  },
+  "allTools": ["read", "write", "edit", "bash", "grep", "glob", "list", "webfetch", "task", "todowrite", "todoread"],
+  "toolNames": {
+    "Read": "read",
+    "Write": "write",
+    "Edit": "edit",
+    "Grep": "grep",
+    "Glob": "glob",
+    "Bash": "bash",
+    "WebSearch": null,
+    "WebFetch": "webfetch",
+    "Agent": "task",
+    "AskUserQuestion": null,
+    "TaskCreate": "todowrite",
+    "TaskUpdate": "todowrite",
+    "TaskList": "todoread",
+    "TaskGet": "todoread"
+  },
+  "permissions": {
+    "edit": "allow",
+    "bash": "allow",
+    "webfetch": "allow"
+  },
+  "body": [
+    [".claude/skills/translate-add-locale/SKILL.md", ".opencode/commands/translate-add-locale.md"],
+    [".claude/skills/translate-audit/SKILL.md", ".opencode/commands/translate-audit.md"],
+    [".claude/skills/translate-init/SKILL.md", ".opencode/commands/translate-init.md"],
+    [".claude/skills/translate/SKILL.md", ".opencode/commands/translate.md"],
+    [".claude/agents/", ".opencode/agents/"],
+    ["Agent({ subagent_type:", "task({ subagent:"],
+    ["Agent({subagent_type:", "task({subagent:"],
+    ["Agent({", "task({"],
+    ["subagent_type:", "subagent:"],
+    ["(Agent tool)", "(Task tool)"],
+    ["general-purpose Agent", "general-purpose subagent"],
+    ["`Agent`", "`task`"],
+    ["`WebSearch` / `WebFetch`", "`webfetch`"],
+    ["`WebSearch`/`WebFetch`", "`webfetch`"],
+    ["`TaskCreate` / `TaskUpdate` / `TaskList` / `TaskGet`", "`todowrite` / `todoread`"],
+    ["`WebSearch`", "`webfetch`"],
+    ["`WebFetch`", "`webfetch`"],
+    ["`TaskCreate`", "`todowrite`"],
+    ["`TaskUpdate`", "`todowrite`"],
+    ["`TaskList`", "`todoread`"],
+    ["`TaskGet`", "`todoread`"],
+    ["`AskUserQuestion`", "an interactive question (ask the user directly)"],
+    ["AskUserQuestion", "an interactive question"],
+    ["WebSearch", "webfetch"],
+    ["WebFetch", "webfetch"]
+  ]
+}

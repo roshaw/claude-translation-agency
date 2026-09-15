@@ -12,7 +12,8 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import Ajv2020 from 'ajv/dist/2020.js';
 import { evaluate, parseGlossary } from './eval-assert.mjs';
-import { check as noRegressionCheck } from './no-regression.mjs';
+import { checkTool, idempotent } from './no-regression.mjs';
+import { lintTool } from '../tools/lint.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -508,22 +509,41 @@ const version = read('VERSION').trim();
 }
 
 // ===========================================================================
-// (i) PORT LAYER 1 — NO-REGRESSION (generated .claude == authored .claude)  [HARD]
+// (i) PORT LAYERS 1–3 — generated trees, structural lint, idempotence  [HARD]
 // ===========================================================================
-// Proves the generator reproduces the authored .claude/ tree byte-for-byte from
-// src/ + adapters/claude.json + tiers.json. Guards "did the refactor break the
-// working tool" on every commit. Only runs if the port scaffold exists.
+// Layer 1: generator reproduces each committed tool tree byte-for-byte from
+//   src/ + adapters/<tool>.json + tiers.json (for claude, that's the authored
+//   .claude/ — the "did we break the working tool" gate).
+// Layer 2: each tool tree is well-formed in its own schema (frontmatter, required
+//   fields, model tiers resolve, tool names + spawn targets exist).
+// Layer 3: the generator is idempotent (two runs identical).
+// Only runs if the port scaffold exists.
 {
   if (exists('src') && exists('adapters/claude.json') && exists('tiers.json')) {
-    let res = null, err = null;
-    try { res = noRegressionCheck(); } catch (e) { err = e.message; }
-    hard(
-      'PORT no-regression (.claude)',
-      !err && res.ok,
-      err ? `errored: ${err}` : res.reason
-    );
+    const tools = fs.readdirSync(path.join(ROOT, 'adapters'))
+      .filter((f) => f.endsWith('.json')).map((f) => f.replace(/\.json$/, '')).sort();
+
+    for (const tool of tools) {
+      // Layer 1 — no-regression (skip a tool whose tree isn't committed yet)
+      let nr = null, nrErr = null;
+      try { nr = checkTool(tool); } catch (e) { nrErr = e.message; }
+      if (nrErr) hard(`PORT L1 no-regression (${tool})`, false, `errored: ${nrErr}`);
+      else if (nr.skipped) soft(`PORT L1 no-regression (${tool})`, true, nr.reason);
+      else hard(`PORT L1 no-regression (${tool})`, nr.ok, nr.reason);
+
+      // Layer 2 — structural lint
+      let lt = null, ltErr = null;
+      try { lt = lintTool(tool); } catch (e) { ltErr = e.message; }
+      hard(`PORT L2 lint (${tool})`, !ltErr && lt.ok,
+        ltErr ? `errored: ${ltErr}` : lt.ok ? `${tool} tree well-formed` : lt.issues.join('; '));
+
+      // Layer 3 — idempotence
+      let id = null, idErr = null;
+      try { id = idempotent(tool); } catch (e) { idErr = e.message; }
+      hard(`PORT L3 idempotent (${tool})`, !idErr && id.ok, idErr ? `errored: ${idErr}` : id.reason);
+    }
   } else {
-    soft('PORT no-regression (.claude)', true, 'skipped — port scaffold (src/ + adapters/) not present');
+    soft('PORT layers 1–3', true, 'skipped — port scaffold (src/ + adapters/) not present');
   }
 }
 

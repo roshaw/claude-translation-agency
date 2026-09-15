@@ -9,6 +9,28 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [2.3.0] — 2026-09-15
+
+### Added
+- **Tool-independence port — OpenCode pilot (Phase 2) + test Layers 2–3.** The translator panel now
+  generates a full **OpenCode** tree from the same `src/` source of truth.
+  - **`adapters/opencode.json`** — the OpenCode adapter (verified against opencode.ai docs, Sept
+    2026): agents → `.opencode/agents/<name>.md` (`mode: subagent`, `model`, `tools` map with real
+    restriction, `permission` map); skills → `.opencode/commands/<name>.md` (`/name`). Seam
+    substitutions map spawn (`Agent({subagent_type})` → `task({subagent})`), tool names
+    (`WebSearch`/`WebFetch`→`webfetch`, `TaskCreate…`→`todowrite`/`todoread`, `AskUserQuestion`→prose),
+    and self-reference paths. Friction log: [`docs/porting/opencode-notes.md`](docs/porting/opencode-notes.md).
+  - **Generator generalized** — `tools/generate.mjs` is now adapter-driven (per-tool frontmatter
+    renderers + ordered literal body substitutions); the Claude path stays byte-identical.
+  - **Layer 2 — structural lint** (`tools/lint.mjs`, `npm run lint:agents`): per tool, frontmatter
+    parses, required fields present, every model resolves via `tiers.json`, tool-map names are real,
+    and every spawn reference names an agent that exists.
+  - **Layer 3 — idempotence + committed-tree reproducibility** (`tests/no-regression.mjs` generalized
+    to all tools): generating twice is identical, and every committed tool tree matches a fresh
+    generation (no hand-edit drift).
+  - **npm scripts** — `extract:agents`, `build:agents`, `lint:agents`, `check:agents`.
+  - All of the above run inside `npm test` (now 28 checks, green) with **zero** tokens.
+
 ## [2.2.0] — 2026-09-15
 
 ### Added
@@ -432,7 +454,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.2.0...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.3.0...HEAD
+[2.3.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.2.0...v2.3.0
 [2.2.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/roshaw/claude-translation-agency/compare/v1.1.1...v2.0.0

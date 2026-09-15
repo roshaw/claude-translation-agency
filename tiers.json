@@ -1,0 +1,29 @@
+{
+  "$comment": "Model-tier map (seam 5). tier -> concrete model per tool. Re-verify IDs at port time; they drift. strong=Lead(QA/orchestration), mid=Senior+Researcher, cheap=Junior(chrome).",
+  "tiers": {
+    "strong": {
+      "claude": "opus",
+      "opencode": "anthropic/claude-opus-4-1",
+      "codex": "gpt-5",
+      "copilot": "claude-opus-41"
+    },
+    "mid": {
+      "claude": "sonnet",
+      "opencode": "anthropic/claude-sonnet-4-5",
+      "codex": "gpt-5-mini",
+      "copilot": "claude-sonnet-45"
+    },
+    "cheap": {
+      "claude": "haiku",
+      "opencode": "anthropic/claude-haiku-4-5",
+      "codex": "gpt-5-nano",
+      "copilot": "claude-haiku-45"
+    }
+  },
+  "prose": {
+    "$comment": "How a tier is named in body prose (seam 5b). Claude keeps the historical model words.",
+    "strong": { "claude": "Opus" },
+    "mid": { "claude": "Sonnet" },
+    "cheap": { "claude": "Haiku" }
+  }
+}

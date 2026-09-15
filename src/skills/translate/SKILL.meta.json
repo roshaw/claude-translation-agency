@@ -1,0 +1,5 @@
+{
+  "kind": "skill",
+  "name": "translate",
+  "description": "Translate any project or set of files into one or more target languages using the three-tier translator panel (Lead → Senior/Junior with adversarial QA). Works on codebases (i18n message catalogs, WordPress .po/.pot/.json, MDX/HTML content trees) and standalone documents (Markdown, JSON, docx, txt, subtitles, CSV). Detects the source language and file formats, computes the translation scope (whole project, changed-since-last-run, or an explicit file/glob set), classifies each batch as low-risk (Junior) or domain-prose (Senior), and applies the domain SPECIALIZATION setting (default `general`; e.g. technical, marketing, legal). Runs one final verify/build at the end and writes a report. Use when the user says \"translate this\", \"translate into <language>\", \"localize the project\", \"run the translation pass\", \"translate the WordPress strings\", \"translate these files\", or \"i18n sweep\"."
+}

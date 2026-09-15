@@ -1,0 +1,5 @@
+{
+  "kind": "skill",
+  "name": "translate-init",
+  "description": "Guided, step-by-step builder for a project's translation.config.json — the setup step before /translate. Walks the operator through every option ONE AT A TIME with a plain-language explanation of what it does and what to fill, pre-filling smart defaults it detects from the project (source language, formats, existing target languages). Captures the project's PURPOSE/CONTEXT (what the product is, so the translator picks the right sense of each word), the target languages, domain specialization, output layout, and the research/uncertainty preferences. Writes the config at the project's root and registers the folder as a tracked project. Use when the user says \"set up translation for this project\", \"create the translation config\", \"configure translations\", \"initialize translation\", \"build the config step by step\", or before a first /translate run on a project with no config."
+}

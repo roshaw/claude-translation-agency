@@ -9,6 +9,25 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [2.2.0] — 2026-09-15
+
+### Added
+- **Tool-independence port — foundation (Phases 0–1).** Groundwork to run the same translator panel
+  on other agentic CLIs (OpenCode, Codex CLI, Copilot CLI) from **one** authored source, without
+  hand-forking N copies. See [`PORTING-PLAN.md`](PORTING-PLAN.md) (generic) +
+  [`PORTING-PLAN.translation-agency.md`](PORTING-PLAN.translation-agency.md) (this repo).
+  - **Phase 0 — coupling inventory.** [`docs/porting/coupling-inventory.md`](docs/porting/coupling-inventory.md)
+    tags every tool-specific reference in the 8 coupled agent/skill files to one of the six seams
+    (frontmatter, spawn, tool names, entry point, model tiers, task primitives), with grep-derived
+    line-level tallies. Confirms all coupling is confined to those 8 files.
+  - **Phase 1 — source of truth.** Authored bodies now live in `src/agents/` + `src/skills/` (body +
+    neutral `*.meta.json`); `.claude/` becomes the first **generated** target. Seams factored into
+    `tiers.json` (tier→model per tool) + `adapters/claude.json`. `tools/extract.mjs` derives `src/`
+    from `.claude/`; `tools/generate.mjs <tool>` emits a tool's tree from `src/` + adapter + tiers.
+  - **Layer 1 — no-regression gate.** `tests/no-regression.mjs` (wired into `npm test`) proves the
+    generator reproduces `.claude/` **byte-for-byte** — the guard that the working Claude Code path is
+    unchanged. Green.
+
 ## [2.1.0] — 2026-08-28
 
 ### Added
@@ -413,7 +432,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.2.0...HEAD
+[2.2.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.1.0...v2.2.0
 [2.1.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/roshaw/claude-translation-agency/compare/v1.1.1...v2.0.0
 [1.1.1]: https://github.com/roshaw/claude-translation-agency/compare/v1.1.0...v1.1.1

@@ -12,6 +12,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import Ajv2020 from 'ajv/dist/2020.js';
 import { evaluate, parseGlossary } from './eval-assert.mjs';
+import { check as noRegressionCheck } from './no-regression.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -504,6 +505,26 @@ const version = read('VERSION').trim();
   }
 
   try { if (tmpDir) fs.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* best-effort cleanup */ }
+}
+
+// ===========================================================================
+// (i) PORT LAYER 1 — NO-REGRESSION (generated .claude == authored .claude)  [HARD]
+// ===========================================================================
+// Proves the generator reproduces the authored .claude/ tree byte-for-byte from
+// src/ + adapters/claude.json + tiers.json. Guards "did the refactor break the
+// working tool" on every commit. Only runs if the port scaffold exists.
+{
+  if (exists('src') && exists('adapters/claude.json') && exists('tiers.json')) {
+    let res = null, err = null;
+    try { res = noRegressionCheck(); } catch (e) { err = e.message; }
+    hard(
+      'PORT no-regression (.claude)',
+      !err && res.ok,
+      err ? `errored: ${err}` : res.reason
+    );
+  } else {
+    soft('PORT no-regression (.claude)', true, 'skipped — port scaffold (src/ + adapters/) not present');
+  }
 }
 
 // ===========================================================================

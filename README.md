@@ -2,7 +2,7 @@
 
 > Ready-to-use agents and skills that translate **any project or set of files into any language**, with a domain **specialization** you choose per run — run them in **Claude Code** or **OpenCode** (Codex and Copilot trees are generated too).
 
-[![Version](https://img.shields.io/badge/version-2.7.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-2.8.0-blue.svg)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 Translation Agency is a portable, tool-independent localization pipeline. It runs its three-tier "translator panel" in [**Claude Code**](https://claude.com/claude-code) / Cowork (the authored source of truth) **or in [OpenCode](https://opencode.ai)** — and generates ready trees for the **OpenAI Codex CLI** and **GitHub Copilot CLI** from the same source (see [Which tool runs it?](#which-tool-runs-it-claude-code-or-opencode)). It was extracted and generalized from a production legal-fee-calculator localization system, whose panel and adversarial-QA design proved out over many real passes — then had all its project-specific hardwiring lifted out into settings so the same machinery works on a WordPress plugin, a React app's i18n, a folder of Markdown docs, or a batch of JSON files.
@@ -361,6 +361,24 @@ you; answering (by editing the glossary or notes) settles the item so it's never
 the default (`queries: report`). If you'd rather be asked live for the riskiest terms, `high-stakes`
 adds interactive prompts for legal/medical/financial vocabulary only; `off` skips the file entirely.
 
+## Visual mods (optional)
+
+`mods/ta-mods/` is a Claude Code **function-hook plugin** that puts a single **Translation** pane (and a
+band above the prompt) beside the chat, showing a run's state — read locally and read-only:
+
+- **Coverage** — per-language completeness, the live form of `/translate-audit`.
+- **Panel** — the three-tier translator panel while a `/translate` run is in flight.
+- **Gates** — completeness + each project gate's verdict (shown only when the project has gates).
+
+Open/reopen with `/translation`. It loads as a plugin directory, not a skill:
+
+```
+claude --plugin-dir mods/ta-mods
+```
+
+Needs Claude Code with function-hook plugins (2.1.317+). The first cut reads JSON message catalogs; see
+[`mods/ta-mods/README.md`](mods/ta-mods/README.md) for the full contract, loading options, and scope.
+
 ## Project layout
 
 ```
@@ -369,7 +387,7 @@ translation-agency/
 ├── README.md                     # this file
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 2.7.0
+├── VERSION                       # 2.8.0
 ├── package.json                  # npm test / npm start → tests/check.mjs (dev dep: ajv)
 ├── translation.config.json       # default settings
 ├── translation.config.schema.json # JSON Schema for the config (editor autocomplete + validation)
@@ -383,6 +401,7 @@ translation-agency/
 ├── .opencode/                    # GENERATED from .claude/: agents/ (subagents) + commands/ (/name)
 ├── .codex/                       # GENERATED: config.toml profiles + agents/ (TOML instruction docs)
 ├── .github/agents/               # GENERATED: <name>.agent.md (Copilot CLI)
+├── mods/ta-mods/                 # Claude Code mod (optional): the Translation pane — coverage · panel · gates (load with --plugin-dir)
 ├── specializations/              # general, technical, marketing, legal, finance, medical, ecommerce, travel, government, scientific (+ README)
 └── projects/                     # _template + README tracked; registry.json + per-project data are git-ignored (local)
 ```
@@ -486,7 +505,7 @@ npm test                      # the full invariant suite (lint, idempotence, tre
 
 ## Versioning
 
-This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **2.7.0**.
+This project follows [Semantic Versioning](https://semver.org): `MAJOR.MINOR.PATCH`. Bump PATCH for fixes, MINOR for new features (a new specialization or format), MAJOR for breaking changes to how skills or config work. Releases are tagged `vX.Y.Z` and recorded in [`CHANGELOG.md`](CHANGELOG.md). Current version: **2.8.0**.
 
 ## Contributing
 

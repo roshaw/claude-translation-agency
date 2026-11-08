@@ -1,6 +1,6 @@
 # Translation Agency
 
-**Version 2.7.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
+**Version 2.8.0** · MIT licensed · [SemVer](https://semver.org) + [CHANGELOG.md](CHANGELOG.md)
 
 A reusable, project-agnostic translation system: ready-to-use **skills** and **agents** that
 translate **any project or set of files into any language**, with a domain **specialization** you
@@ -378,6 +378,19 @@ without a version bump in the same commit.
    (`git tag -a vX.Y.Z -m "Release X.Y.Z" && git push origin vX.Y.Z`). Every version bump gets a
    matching tag — the tag list must stay 1:1 with the released versions.
 
+## Mods (optional visual panes)
+
+`mods/ta-mods/` is a Claude Code **function-hook plugin** — a single **Translation** pane (plus a band
+above the prompt) that sits beside the chat and shows a run's state, read locally and **read-only**:
+**Coverage** (per-language completeness, the live form of `/translate-audit`), **Panel** (the three-tier
+panel while a `/translate` run is in flight, from `$.agent.list()`), and **Gates** (completeness + each
+project gate's verdict, shown only when the project has gates). Open/reopen with `/translation`.
+
+It is **not** under `.claude/skills/` on purpose (that tree is generated and `npm test` expects a
+`SKILL.md` in every skill dir); it is a **plugin directory**, loaded with `claude --plugin-dir mods/ta-mods`
+or `CLAUDE_CODE_PLUGIN_DIRS`, and needs Claude Code with function-hook plugins (2.1.317+). The first cut
+reads JSON message catalogs. Full contract and loading steps: `mods/ta-mods/README.md`.
+
 ## Layout
 
 ```
@@ -386,7 +399,7 @@ Translation Agency/
 ├── README.md                     # GitHub landing page
 ├── LICENSE                       # MIT
 ├── CHANGELOG.md                  # Keep a Changelog + SemVer
-├── VERSION                       # 2.7.0
+├── VERSION                       # 2.8.0
 ├── .gitignore
 ├── package.json                  # npm test / npm start → tests/check.mjs; dev dep ajv
 ├── translation.config.json      # default settings (source/target langs, specialization, output, formats)
@@ -417,6 +430,8 @@ Translation Agency/
 │       ├── translate/SKILL.md    # the main translation pass
 │       ├── translate-add-locale/SKILL.md   # scaffold a new UI language, then hand off
 │       └── translate-audit/SKILL.md        # read-only coverage audit (missing translations per language)
+├── mods/
+│   └── ta-mods/                   # Claude Code mod: the Translation pane (coverage · panel · gates); load with --plugin-dir
 ├── specializations/
 │   ├── README.md                 # how specializations work + how to add one
 │   ├── general.md                # default
@@ -446,7 +461,8 @@ Translation Agency/
   it.
 - To use this against a project, either run `/translate --path <that project>` from here, or copy
   the `.claude/agents`, `.claude/skills`, and `specializations/` folders (plus a
-  `translation.config.json`) into that project.
+  `translation.config.json`) into that project. For the optional visual panes, also copy `mods/ta-mods/`
+  and load it with `--plugin-dir mods/ta-mods`.
 - These skills/agents are files on disk. To make them installable **account skills** in the Claude
   app, package a skill's folder as a `.skill` and save it from the delivered file (see the app's
   skill settings) — the on-disk copies here are the source of truth you edit.

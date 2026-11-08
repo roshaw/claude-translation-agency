@@ -9,6 +9,26 @@ breaking changes to skills or config).
 
 ## [Unreleased]
 
+## [2.8.0] — 2026-11-09
+
+### Added
+- **`mods/ta-mods/` — Claude Code mods for a translation run.** A function-hook plugin that puts a
+  single **Translation** pane (and a band above the prompt) beside the chat, showing a run's state,
+  read locally and read-only. Three stacked sections, in order: **Coverage** (per-language
+  completeness — the live form of `/translate-audit`, diffing the JSON message catalogs into the four
+  gap classes), **Panel** (the three-tier panel while a `/translate` run is in flight, from
+  `$.agent.list()`), and **Gates** (completeness + each project gate's verdict, shown **only** when the
+  project actually has gates). Open/reopen with `/translation`. It is a **plugin directory** loaded via
+  `--plugin-dir mods/ta-mods` or `CLAUDE_CODE_PLUGIN_DIRS` — deliberately **not** under `.claude/skills/`
+  (that tree is generated and expects a `SKILL.md`), so `npm test` stays green. Needs Claude Code with
+  function-hook plugins (2.1.317+). First cut reads JSON message catalogs; `.po`/`.ts`/content trees show
+  an empty state. See `mods/ta-mods/README.md`.
+- **`mod-mockups/`** — static HTML mockups of the six-mod design this plugin implements 1/2/6 of; the
+  other three (C1–C7 review, glossary & terminology, open questions) are mapped but not yet built.
+
+### Fixed
+- **`package-lock.json` version** was stale at `0.10.0`; synced to the real version.
+
 ## [2.7.0] — 2026-09-15
 
 ### Added
@@ -562,7 +582,8 @@ pipeline into a project-agnostic translation system.
 - Project guide (`CLAUDE.md`), `README.md`, `LICENSE` (MIT), `VERSION`, and this
   changelog.
 
-[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.7.0...HEAD
+[Unreleased]: https://github.com/roshaw/claude-translation-agency/compare/v2.8.0...HEAD
+[2.8.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.7.0...v2.8.0
 [2.7.0]: https://github.com/roshaw/claude-translation-agency/compare/v2.6.2...v2.7.0
 [2.6.2]: https://github.com/roshaw/claude-translation-agency/compare/v2.6.1...v2.6.2
 [2.6.1]: https://github.com/roshaw/claude-translation-agency/compare/v2.6.0...v2.6.1

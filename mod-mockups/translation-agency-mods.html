@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mod mockups: Translation Agency</title>
+<style>
+/* Self-contained. Static mockups — every number is invented sample data.
+   Design language borrowed from the LayOff mod-mockups (dark, Claude clay). */
+:root {
+  --bg: #0f0f10;
+  --page: #161618;
+  --win: #1c1c1f;
+  --win-2: #232327;
+  --line: #2e2e33;
+  --text: #e8e6e3;
+  --muted: #9a978f;
+  --dim: #6b6963;
+  --accent: #d97757;      /* Claude clay */
+  --accent-soft: #d9775722;
+  --ok: #6fbf73;
+  --warn: #e0b04a;
+  --bad: #e06c5a;
+  --info: #6aa7e0;
+  --violet: #a58be0;
+  --radius: 10px;
+  --mono: "Cascadia Code", "JetBrains Mono", Consolas, monospace;
+  --sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.5; }
+a { color: var(--accent); }
+
+.page { max-width: 1180px; margin: 0 auto; padding: 48px 24px 96px; }
+.page > header h1 { font-size: 30px; margin: 0 0 6px; letter-spacing: -0.01em; }
+.page > header p { color: var(--muted); margin: 0; max-width: 820px; }
+.page > header code { font-family: var(--mono); font-size: 12px; color: var(--text); }
+.nav { display: flex; gap: 16px; margin: 0 0 28px; font-size: 14px; }
+.toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 8px; }
+.toc a {
+  font-size: 13px; text-decoration: none; color: var(--text);
+  background: var(--win); border: 1px solid var(--line);
+  padding: 5px 11px; border-radius: 999px;
+}
+.toc a:hover { border-color: var(--accent); }
+
+.mod { margin-top: 56px; scroll-margin-top: 24px; }
+.mod-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.mod-head .num {
+  font-family: var(--mono); font-size: 13px; color: var(--accent);
+  border: 1px solid var(--accent); border-radius: 6px; padding: 1px 7px;
+}
+.mod-head h2 { margin: 0; font-size: 21px; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--muted); background: var(--win-2); border-radius: 4px; padding: 2px 7px;
+}
+.mod-why { color: var(--muted); margin: 8px 0 16px; max-width: 820px; font-size: 15px; }
+.mod-notes {
+  margin-top: 12px; font-size: 13px; color: var(--muted);
+  border-left: 2px solid var(--line); padding-left: 12px;
+}
+.mod-notes code { font-family: var(--mono); color: var(--text); font-size: 12px; }
+
+/* Fake Claude window */
+.win {
+  display: grid; grid-template-columns: 1fr 360px;
+  background: var(--win); border: 1px solid var(--line);
+  border-radius: var(--radius); overflow: hidden;
+  box-shadow: 0 20px 50px #0007; min-height: 400px;
+}
+.win.no-pane { grid-template-columns: 1fr; }
+.win-main { display: flex; flex-direction: column; min-width: 0; }
+.titlebar {
+  grid-column: 1 / -1; display: flex; align-items: center; gap: 8px;
+  padding: 9px 14px; border-bottom: 1px solid var(--line);
+  font-size: 12px; color: var(--dim); background: var(--win-2);
+}
+.dots { display: flex; gap: 6px; }
+.dots i { width: 10px; height: 10px; border-radius: 50%; background: #3a3a40; display: block; }
+
+.chat { flex: 1; padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; font-size: 14px; }
+.msg-user { align-self: flex-end; background: var(--win-2); border: 1px solid var(--line); padding: 8px 12px; border-radius: 12px; max-width: 78%; }
+.msg-ai { color: var(--text); max-width: 94%; }
+.tool { font-family: var(--mono); font-size: 12px; color: var(--muted); background: #18181b; border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; display: flex; gap: 8px; align-items: center; }
+.tool b { color: var(--text); font-weight: 600; }
+
+/* Band above the prompt */
+.band { margin: 0 14px; padding: 8px 12px; border-radius: 8px 8px 0 0; border: 1px solid var(--line); border-bottom: none; background: var(--win-2); font-size: 13px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.band.warn { background: #3a2f17; border-color: #6b5524; color: #f3d998; }
+.band.bad { background: #3a1d19; border-color: #7a3a30; color: #f6b6aa; }
+.band.ok { background: #16271a; border-color: #2f5c38; color: #bfe6c4; }
+.band .spacer { flex: 1; }
+.band button, .btn { font: inherit; font-size: 12px; cursor: pointer; color: var(--text); background: #ffffff10; border: 1px solid #ffffff22; border-radius: 6px; padding: 3px 10px; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #1a1a1a; font-weight: 600; }
+
+.prompt { margin: 0 14px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 0 0 8px 8px; color: var(--dim); font-size: 14px; background: #18181b; }
+.prompt.solo { border-radius: 8px; }
+.statusline { display: flex; gap: 16px; align-items: center; padding: 8px 16px 12px; font-family: var(--mono); font-size: 12px; color: var(--dim); flex-wrap: wrap; }
+.statusline .hl { color: var(--text); }
+
+/* Side pane */
+.pane { border-left: 1px solid var(--line); background: #19191c; display: flex; flex-direction: column; min-width: 0; }
+.pane-head { padding: 11px 14px; border-bottom: 1px solid var(--line); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+.pane-head .sub { margin-left: auto; font-weight: 400; color: var(--dim); font-size: 12px; }
+.pane-body { padding: 14px; display: flex; flex-direction: column; gap: 14px; font-size: 13px; overflow: hidden; }
+.section-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--dim); }
+
+/* Toast */
+.toast { position: absolute; right: 16px; bottom: 70px; background: #2a2a2f; border: 1px solid var(--line); border-left: 3px solid var(--warn); padding: 9px 13px; border-radius: 8px; font-size: 13px; box-shadow: 0 10px 30px #0008; animation: toast-in 0.5s ease-out both, toast-bob 3s ease-in-out 0.5s infinite; }
+.win-main.has-toast { position: relative; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes toast-bob { 50% { transform: translateY(-3px); } }
+
+/* Reusable visual bits */
+.meter { height: 8px; background: #2a2a2f; border-radius: 999px; overflow: hidden; display: flex; }
+.meter > span { display: block; height: 100%; }
+.legend { display: grid; grid-template-columns: 12px 1fr auto; gap: 6px 8px; align-items: center; font-size: 12px; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; display: block; }
+.legend .v { font-family: var(--mono); color: var(--muted); }
+.row { display: flex; align-items: center; gap: 8px; }
+.row .grow { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mono { font-family: var(--mono); font-size: 12px; }
+.muted { color: var(--muted); }
+.dim { color: var(--dim); }
+.ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); } .info { color: var(--info); } .violet { color: var(--violet); }
+.pill { font-size: 11px; padding: 1px 7px; border-radius: 999px; background: var(--win-2); color: var(--muted); white-space: nowrap; }
+.pill.ok { background: #6fbf7322; color: var(--ok); }
+.pill.warn { background: #e0b04a22; color: var(--warn); }
+.pill.bad { background: #e06c5a22; color: var(--bad); }
+.pill.info { background: #6aa7e022; color: var(--info); }
+.pill.violet { background: #a58be022; color: var(--violet); }
+.card { background: var(--win-2); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.spin { width: 12px; height: 12px; border-radius: 50%; flex: none; border: 2px solid #ffffff22; border-top-color: var(--accent); animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.pulse { animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.45; } }
+.grow-in { animation: grow-in 1.2s ease-out both; transform-origin: left; }
+@keyframes grow-in { from { transform: scaleX(0); } }
+
+/* Coverage matrix */
+.matrix { display: grid; grid-template-columns: auto repeat(3, 1fr); gap: 6px 10px; align-items: center; font-size: 12px; }
+.matrix .h { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; }
+.matrix .lang { display: flex; align-items: center; gap: 6px; }
+.matrix .flag { font-size: 14px; }
+.cell { display: flex; flex-direction: column; gap: 3px; }
+.cell .pct { font-family: var(--mono); font-size: 11px; }
+.cell .bar { height: 5px; border-radius: 999px; background: #2a2a2f; overflow: hidden; }
+.cell .bar > span { display: block; height: 100%; }
+
+/* C1–C7 rows */
+.cchecks { display: flex; flex-direction: column; gap: 7px; }
+.ccheck { display: grid; grid-template-columns: 30px 1fr auto; gap: 8px; align-items: center; }
+.ccheck .code { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+.ccheck .cbar { height: 7px; border-radius: 999px; background: #2a2a2f; overflow: hidden; display: flex; }
+.ccheck .cbar > span { display: block; height: 100%; }
+.ccheck .cnt { font-family: var(--mono); font-size: 11px; color: var(--muted); min-width: 56px; text-align: right; }
+
+/* Timeline (batches) */
+.timeline { display: flex; flex-direction: column; gap: 0; }
+.tl-item { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; padding: 6px 0; align-items: start; position: relative; }
+.tl-item::before { content: ""; position: absolute; left: 10px; top: 24px; bottom: -6px; width: 1px; background: var(--line); }
+.tl-item:last-child::before { display: none; }
+.tl-dot { width: 21px; height: 21px; border-radius: 6px; display: grid; place-items: center; font-size: 11px; font-family: var(--mono); background: var(--win-2); border: 1px solid var(--line); }
+.tl-dot.ok { border-color: #6fbf7366; color: var(--ok); } .tl-dot.warn { border-color: #6b5524; color: var(--warn); } .tl-dot.run { border-color: var(--accent); }
+
+/* Tier cards */
+.tier { display: flex; align-items: center; gap: 8px; }
+.tier .badge { font-size: 10px; font-family: var(--mono); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); }
+.tier .badge.lead { color: var(--violet); border-color: #a58be055; }
+.tier .badge.senior { color: var(--info); border-color: #6aa7e055; }
+.tier .badge.junior { color: var(--ok); border-color: #6fbf7355; }
+.tier .badge.research { color: var(--warn); border-color: #e0b04a55; }
+
+/* Glossary rows */
+.gloss { display: grid; grid-template-columns: 1fr auto 1fr; gap: 4px 10px; align-items: center; font-size: 12px; }
+.gloss .src { color: var(--muted); }
+.gloss .arrow { color: var(--dim); font-family: var(--mono); }
+.gloss .tgt { font-weight: 600; }
+
+@media (max-width: 860px) {
+  .win { grid-template-columns: 1fr; }
+  .pane { border-left: none; border-top: 1px solid var(--line); }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <nav class="nav"><a href="https://github.com/roshaw/claude-translation-agency">Translation Agency</a></nav>
+  <header>
+    <h1>Mods for Translation Agency users</h1>
+    <p>Six static mockups of <b>mods</b> — side panes, bands, status-line segments and toasts that sit beside the Claude chat and show the <b>state of a translation run</b>: coverage per language, the three-tier panel at work, the C1–C7 review, the glossary it enforces, the questions it logged, and the gates it must pass before delivery. Built the same way as the LayOff <code>comeback-mods</code> plugin (one plugin in <code>.claude/skills/</code>, function-hook UI, shared drawing helpers). Every number, language and string below is invented sample data. Sample run: a docs project → <b>de · fr · ja</b>, domain <code>technical</code>.</p>
+    <div class="toc">
+      <a href="#coverage">1 · Coverage matrix</a>
+      <a href="#panel">2 · Translator panel</a>
+      <a href="#qa">3 · C1–C7 review</a>
+      <a href="#glossary">4 · Glossary &amp; terms</a>
+      <a href="#queries">5 · Open questions</a>
+      <a href="#gates">6 · Delivery gates</a>
+    </div>
+  </header>
+
+  <!-- 1. COVERAGE MATRIX -->
+  <section class="mod" id="coverage">
+    <div class="mod-head">
+      <span class="num">01</span><h2>Coverage matrix</h2>
+      <div class="tags"><span class="tag">pane</span><span class="tag">status line</span><span class="tag">toast</span></div>
+    </div>
+    <p class="mod-why">Per-language completeness at a glance — the live form of <code>/translate-audit</code>. Each target language shows how much of the key/string/page union it has, split by the four gap classes (missing-in-target, missing-in-source, empty, untranslated leftover). You see which language is behind and <i>why</i>, without reading the report.</p>
+    <div class="win">
+      <div class="titlebar"><div class="dots"><i></i><i></i><i></i></div>Translation Agency — MyApp docs</div>
+      <div class="win-main has-toast">
+        <div class="chat">
+          <div class="msg-user">How complete are we across all languages?</div>
+          <div class="msg-ai">German is done. French is missing 14 strings, Japanese 61 — and there are 3 keys that exist in translations but not in the source, which a run can't auto-fill. The matrix on the right breaks it down.</div>
+        </div>
+        <div class="toast">⚠ ja dropped to 72% — 61 strings still untranslated.</div>
+        <div class="prompt solo">Ask Claude anything…</div>
+        <div class="statusline">
+          <span>opus · technical</span>
+          <span class="hl">de 100% · fr 88% · ja 72%</span>
+          <span>3 source gaps</span>
+        </div>
+      </div>
+      <aside class="pane">
+        <div class="pane-head">Coverage <span class="sub">483 keys · 3 langs</span></div>
+        <div class="pane-body">
+          <div class="matrix">
+            <span class="h">Lang</span><span class="h">Done</span><span class="h">Missing</span><span class="h">Issues</span>
+            <span class="lang"><span class="flag">🇩🇪</span>de</span>
+            <span class="cell"><span class="pct ok">100%</span><span class="bar"><span class="grow-in" style="width:100%;background:var(--ok)"></span></span></span>
+            <span class="cell"><span class="pct muted">0</span></span>
+            <span class="cell"><span class="pct muted">—</span></span>
+
+            <span class="lang"><span class="flag">🇫🇷</span>fr</span>
+            <span class="cell"><span class="pct warn">88%</span><span class="bar"><span class="grow-in" style="width:88%;background:var(--warn)"></span></span></span>
+            <span class="cell"><span class="pct warn">14</span></span>
+            <span class="cell"><span class="pill info">2 empty</span></span>
+
+            <span class="lang"><span class="flag">🇯🇵</span>ja</span>
+            <span class="cell"><span class="pct bad">72%</span><span class="bar"><span class="grow-in" style="width:72%;background:var(--bad)"></span></span></span>
+            <span class="cell"><span class="pct bad">61</span></span>
+            <span class="cell"><span class="pill warn">5 leftover</span></span>
+          </div>
+          <div class="section-label">Needs you — can't auto-fill</div>
+          <div class="card" style="border-color:#6b5524">
+            <div class="row"><span class="warn">⚠</span><b class="grow">3 keys missing in source</b><span class="pill warn">source gap</span></div>
+            <div class="muted" style="font-size:12px;margin-top:4px"><span class="mono">cta.renew</span>, <span class="mono">err.quota</span>, <span class="mono">nav.billing</span> — present in de/fr, absent from <span class="mono">en.json</span>.</div>
+          </div>
+          <div class="dim" style="font-size:11px">Read-only audit. Nothing written. Run <span class="mono">/translate --to ja</span> to close the target gaps.</div>
+        </div>
+      </aside>
+    </div>
+    <div class="mod-notes">Data: the union of keys across every locale file (incl. the source), diffed per language into the four gap classes — the same logic as the <code>translate-audit</code> coverage mode, run on a <code>turn.complete</code> hook. Status line shows the headline per-language %; the toast fires once when a language crosses a drop threshold.</div>
+  </section>
+
+  <!-- 2. TRANSLATOR PANEL -->
+  <section class="mod" id="panel">
+    <div class="mod-head">
+      <span class="num">02</span><h2>Translator panel — live</h2>
+      <div class="tags"><span class="tag">pane</span><span class="tag">band</span></div>
+    </div>
+    <p class="mod-why">The three-tier panel while a run is in flight: which batch each worker holds, its tier (Lead / Senior / Junior / Researcher), and where the Lead's adversarial review is. Turns the orchestration from an opaque wait into a board you can watch.</p>
+    <div class="win">
+      <div class="titlebar"><div class="dots"><i></i><i></i><i></i></div>Translation Agency — MyApp docs</div>
+      <div class="win-main">
+        <div class="chat">
+          <div class="msg-user">/translate --full --to de,fr,ja --domain technical</div>
+          <div class="msg-ai">Panel spawned. Researcher built the glossary; Senior is on the domain-prose batches, Junior on the UI chrome, and the Lead reviews each returned batch against C1–C7 before sign-off.</div>
+          <div class="tool"><span class="spin"></span><b>translate-lead</b> reviewing batch 4/9 (fr · error strings)</div>
+        </div>
+        <div class="band"><span class="spin"></span><span><b>Panel running</b> · 9 batches · 4 reviewed · 1 reflagged</span><span class="spacer"></span><span class="pill ok">de signed off</span></div>
+        <div class="prompt">Ask Claude anything…</div>
+        <div class="statusline"><span>opus · technical</span><span>panel: 4/9 batches</span></div>
+      </div>
+      <aside class="pane">
+        <div class="pane-head">Panel <span class="sub">3 active</span></div>
+        <div class="pane-body">
+          <div class="card">
+            <div class="row"><span class="spin"></span><span class="tier"><b class="grow">batch 5 · ja prose</b><span class="badge senior">senior</span></span><span class="mono dim">0m 42s</span></div>
+            <div class="muted" style="font-size:12px;margin-top:4px">Translating MDX body · 18 strings</div>
+            <div class="meter" style="margin-top:8px"><span class="pulse" style="width:55%;background:var(--info)"></span></div>
+          </div>
+          <div class="card">
+            <div class="row"><span class="spin"></span><span class="tier"><b class="grow">batch 6 · fr chrome</b><span class="badge junior">junior</span></span><span class="mono dim">0m 15s</span></div>
+            <div class="muted" style="font-size:12px;margin-top:4px">nav · buttons · footer · 11 strings</div>
+            <div class="meter" style="margin-top:8px"><span class="pulse" style="width:30%;background:var(--ok)"></span></div>
+          </div>
+          <div class="card" style="border-color:#6b5524">
+            <div class="row"><span class="warn">⟳</span><span class="tier"><b class="grow">batch 4 · fr errors</b><span class="badge lead">lead QA</span></span><span class="pill warn">C2 reflag</span></div>
+            <div class="muted" style="font-size:12px;margin-top:4px">Sent back: wrong term of art on 2 strings</div>
+          </div>
+          <div class="section-label">Done</div>
+          <div class="row dim"><span class="ok">✓</span><span class="grow">batches 1–3 · de (all tiers)</span><span class="mono">signed off</span></div>
+        </div>
+      </aside>
+    </div>
+    <div class="mod-notes">Data: an <code>agent.spawn</code> hook records each worker's tier, target language and batch; the Lead's review verdict (sign-off vs reflag + which C-check) updates the card. The band hides itself when no run is active.</div>
+  </section>
+
+  <!-- 3. C1–C7 REVIEW -->
+  <section class="mod" id="qa">
+    <div class="mod-head">
+      <span class="num">03</span><h2>C1–C7 adversarial review</h2>
+      <div class="tags"><span class="tag">pane</span><span class="tag">status line</span></div>
+    </div>
+    <p class="mod-why">The Lead's checklist as a scoreboard: flags per category, split must-fix vs polish. You see at a glance whether the run leaked the classic failures — source-language leftovers, wrong terminology, dropped placeholders — and the band blocks delivery while any must-fix is open.</p>
+    <div class="win">
+      <div class="titlebar"><div class="dots"><i></i><i></i><i></i></div>Translation Agency — MyApp docs</div>
+      <div class="win-main">
+        <div class="chat">
+          <div class="msg-user">Any blockers from the review?</div>
+          <div class="msg-ai">Two must-fix: one dropped <span class="mono">{count}</span> placeholder in ja, and one French string left identical to English. Both are queued for a repair pass. The seven polish flags can ship.</div>
+        </div>
+        <div class="band bad"><span>⛔ <b>2 must-fix</b> open — delivery held</span><span class="spacer"></span><span class="pill warn">7 polish</span><button class="btn primary">Repair &amp; re-review</button></div>
+        <div class="prompt">Ask Claude anything…</div>
+        <div class="statusline"><span>opus · technical</span><span class="bad">QA: 2 must-fix</span></div>
+      </div>
+      <aside class="pane">
+        <div class="pane-head">Review <span class="sub">C1–C7 · 9 flags</span></div>
+        <div class="pane-body">
+          <div class="cchecks">
+            <div class="ccheck"><span class="code">C1</span><span class="cbar"><span style="width:12%;background:var(--bad)"></span></span><span class="cnt"><span class="bad">1</span> leftover</span></div>
+            <div class="ccheck"><span class="code">C2</span><span class="cbar"><span style="width:30%;background:var(--warn)"></span></span><span class="cnt"><span class="warn">3</span> term</span></div>
+            <div class="ccheck"><span class="code">C3</span><span class="cbar"></span><span class="cnt ok">0 verbatim</span></div>
+            <div class="ccheck"><span class="code">C4</span><span class="cbar"><span style="width:12%;background:var(--bad)"></span></span><span class="cnt"><span class="bad">1</span> placeh.</span></div>
+            <div class="ccheck"><span class="code">C5</span><span class="cbar"></span><span class="cnt ok">0 markup</span></div>
+            <div class="ccheck"><span class="code">C6</span><span class="cbar"><span style="width:22%;background:var(--warn)"></span></span><span class="cnt"><span class="warn">2</span> formal.</span></div>
+            <div class="ccheck"><span class="code">C7</span><span class="cbar"><span style="width:22%;background:var(--warn)"></span></span><span class="cnt"><span class="warn">2</span> parity</span></div>
+          </div>
+          <div class="section-label">Must-fix</div>
+          <div class="card" style="border-color:#7a3a30">
+            <div class="row"><span class="pill bad">C4</span><b class="grow mono">ja · docs/setup.mdx</b></div>
+            <div class="muted" style="font-size:12px;margin-top:4px">Dropped <span class="mono">{count}</span> placeholder — “残り 個” should keep <span class="mono">{count}</span>.</div>
+          </div>
+          <div class="card" style="border-color:#7a3a30">
+            <div class="row"><span class="pill bad">C1</span><b class="grow mono">fr · nav.json</b></div>
+            <div class="muted" style="font-size:12px;margin-top:4px">“Dashboard” left identical to source — not a shared token.</div>
+          </div>
+          <div class="dim" style="font-size:11px">C1 leftover · C2 terminology · C3 verbatim · C4 placeholders · C5 markup · C6 formality · C7 parity</div>
+        </div>
+      </aside>
+    </div>
+    <div class="mod-notes">Data: the Lead reports each flag with its C-code, severity and file; the pane tallies per category and lists the must-fix ones. The band is an <code>AbovePrompt</code> render that stays red (and offers the repair pass) until the must-fix count is 0.</div>
+  </section>
+
+  <!-- 4. GLOSSARY -->
+  <section class="mod" id="glossary">
+    <div class="mod-head">
+      <span class="num">04</span><h2>Glossary &amp; terminology</h2>
+      <div class="tags"><span class="tag">pane</span></div>
+    </div>
+    <p class="mod-why">The terms the panel is enforcing, per language, and where each came from — researched, human-edited, or still pending. This is the authority that keeps “commit” a <i>git</i> commit and not a promise. One place to see and trust the vocabulary before a run spreads it everywhere.</p>
+    <div class="win">
+      <div class="titlebar"><div class="dots"><i></i><i></i><i></i></div>Translation Agency — MyApp docs</div>
+      <div class="win-main">
+        <div class="chat">
+          <div class="msg-user">Make sure "commit" stays the git sense in German.</div>
+          <div class="msg-ai">It's pinned: <span class="mono">commit → Commit</span> (de), marked human-edited, so research won't overwrite it. Three terms are still pending your review — they're flagged below.</div>
+        </div>
+        <div class="prompt solo">Ask Claude anything…</div>
+        <div class="statusline"><span>opus · technical</span><span>glossary: 24 terms · 3 pending</span></div>
+      </div>
+      <aside class="pane">
+        <div class="pane-head">Glossary <span class="sub">de · 24 terms</span></div>
+        <div class="pane-body">
+          <div class="section-label">Enforced</div>
+          <div class="gloss">
+            <span class="src">commit</span><span class="arrow">→</span><span class="tgt">Commit <span class="pill ok">human</span></span>
+            <span class="src">deploy</span><span class="arrow">→</span><span class="tgt">deployen <span class="pill info">research</span></span>
+            <span class="src">string</span><span class="arrow">→</span><span class="tgt">Zeichenkette <span class="pill info">research</span></span>
+            <span class="src">rollback</span><span class="arrow">→</span><span class="tgt">Rollback <span class="pill ok">human</span></span>
+          </div>
+          <div class="section-label">Pending your review</div>
+          <div class="card" style="border-color:#6b5524">
+            <div class="gloss">
+              <span class="src">runner</span><span class="arrow">→</span><span class="tgt warn">Runner?</span>
+            </div>
+            <div class="muted" style="font-size:12px;margin-top:4px">Low confidence — “Runner” vs “Ausführungsumgebung”. Ambiguous in CI context.</div>
+          </div>
+          <div class="row"><span class="warn">⚠</span><span class="grow muted" style="font-size:12px">+2 more pending (fr · ja)</span><button>Review</button></div>
+          <div class="dim" style="font-size:11px">A glossary row overrides the specialization on its term. Human rows are never overwritten by research.</div>
+        </div>
+      </aside>
+    </div>
+    <div class="mod-notes">Data: read-only from <code>projects/&lt;slug&gt;/glossary.csv</code> — the Researcher's rows plus any you edited. The <code>source</code> column tags each row (research / human). Pending = low-confidence rows the research pass flagged into the queries file.</div>
+  </section>
+
+  <!-- 5. OPEN QUESTIONS -->
+  <section class="mod" id="queries">
+    <div class="mod-head">
+      <span class="num">05</span><h2>Open questions (queries)</h2>
+      <div class="tags"><span class="tag">band</span><span class="tag">pane</span></div>
+    </div>
+    <p class="mod-why">Uncertainty is handled asynchronously: when the translator is genuinely unsure, it makes its best guess <i>and</i> logs the question — its assumption and what it needs to know — instead of interrupting. This surfaces that log so you can answer on your own time; answering settles it for next run.</p>
+    <div class="win">
+      <div class="titlebar"><div class="dots"><i></i><i></i><i></i></div>Translation Agency — MyApp docs</div>
+      <div class="win-main">
+        <div class="chat">
+          <div class="msg-user">Did anything need my call?</div>
+          <div class="msg-ai">Nothing blocking — the run finished. But I logged 3 questions where I guessed: the clearest is whether “Book” means <i>reserve</i> or the object in ja. My assumption and the file are on the right.</div>
+        </div>
+        <div class="band warn"><span>❓ <b>3 open questions</b> from this run</span><span class="spacer"></span><span class="mono dim">queries-2026-11-08.md</span><button>Open</button></div>
+        <div class="prompt">Ask Claude anything…</div>
+        <div class="statusline"><span>opus · technical</span><span class="warn">3 questions</span></div>
+      </div>
+      <aside class="pane">
+        <div class="pane-head">Questions <span class="sub">3 open · 0 answered</span></div>
+        <div class="pane-body">
+          <div class="card">
+            <div class="row"><span class="pill info">ja</span><b class="grow">“Book” — sense?</b></div>
+            <div class="muted" style="font-size:12px;margin-top:4px"><b class="muted">Guessed:</b> 予約 (reserve). <b class="muted">Need:</b> confirm it's the verb, not the noun.</div>
+          </div>
+          <div class="card">
+            <div class="row"><span class="pill info">fr</span><b class="grow">Formality of CTAs?</b></div>
+            <div class="muted" style="font-size:12px;margin-top:4px"><b class="muted">Guessed:</b> vous (formal). <b class="muted">Need:</b> brand prefers tu?</div>
+          </div>
+          <div class="card">
+            <div class="row"><span class="pill violet">*</span><b class="grow">“Workspace” — keep EN?</b></div>
+            <div class="muted" style="font-size:12px;margin-top:4px"><b class="muted">Guessed:</b> translated. <b class="muted">Need:</b> is it a product name?</div>
+          </div>
+          <div class="dim" style="font-size:11px">Answer by editing the glossary or notes — the run never waits on you. <span class="mono">high-stakes</span> mode asks a few interactively.</div>
+        </div>
+      </aside>
+    </div>
+    <div class="mod-notes">Data: read-only from <code>projects/&lt;slug&gt;/queries-&lt;date&gt;.md</code>. The band appears only when the open-question count &gt; 0 and clears when you resolve them. Nothing here blocks the run — it already shipped a best guess.</div>
+  </section>
+
+  <!-- 6. DELIVERY GATES -->
+  <section class="mod" id="gates">
+    <div class="mod-head">
+      <span class="num">06</span><h2>Delivery gates</h2>
+      <div class="tags"><span class="tag">band</span><span class="tag">pane</span></div>
+    </div>
+    <p class="mod-why">The last line before ship: the completeness gate (no silent gaps on a <code>--full</code> run) and each project gate (plagiarism, readability, compliance) per language. Nothing delivers while a gate is red — and an override is reported as overridden, never shipped silently.</p>
+    <div class="win">
+      <div class="titlebar"><div class="dots"><i></i><i></i><i></i></div>Translation Agency — MyApp docs</div>
+      <div class="win-main">
+        <div class="chat">
+          <div class="msg-user">Are we clear to commit the translations?</div>
+          <div class="msg-ai">de and fr pass every gate. ja fails the readability gate on two pages — it's over the grade target. Options: refine those passages in place, or hold ja and ship de/fr now.</div>
+        </div>
+        <div class="band warn"><span>🚦 <b>ja held</b> — readability gate failed (2 pages)</span><span class="spacer"></span><button>Refine &amp; re-gate</button><button class="btn primary">Ship de/fr</button></div>
+        <div class="prompt">Ask Claude anything…</div>
+        <div class="statusline"><span>opus · technical</span><span class="warn">gates: 1/3 held</span></div>
+      </div>
+      <aside class="pane">
+        <div class="pane-head">Gates <span class="sub">per language</span></div>
+        <div class="pane-body">
+          <div class="card">
+            <div class="row"><span class="flag">🇩🇪</span><b class="grow">de</b><span class="pill ok">ship</span></div>
+            <div class="muted" style="font-size:12px;margin-top:4px">✓ completeness · ✓ plagiarism · ✓ readability</div>
+          </div>
+          <div class="card">
+            <div class="row"><span class="flag">🇫🇷</span><b class="grow">fr</b><span class="pill ok">ship</span></div>
+            <div class="muted" style="font-size:12px;margin-top:4px">✓ completeness · ✓ plagiarism · ✓ readability</div>
+          </div>
+          <div class="card" style="border-color:#6b5524">
+            <div class="row"><span class="flag">🇯🇵</span><b class="grow">ja</b><span class="pill warn">held</span></div>
+            <div class="muted" style="font-size:12px;margin-top:4px">✓ completeness · ✓ plagiarism · <span class="warn">✗ readability</span></div>
+            <div class="muted" style="font-size:12px;margin-top:4px"><span class="mono">docs/setup.mdx</span>, <span class="mono">docs/cli.mdx</span> — above grade target.</div>
+          </div>
+          <div class="dim" style="font-size:11px">Gates run on the final complete output, after completeness, before build. An accept is reported as overridden with its findings.</div>
+        </div>
+      </aside>
+    </div>
+    <div class="mod-notes">Data: the completeness check plus each <code>config.gates</code> verdict (<code>status: pass | fail</code> + findings) per language, surfaced from the gate output files. The band offers the gate's <code>onFail</code> choices (refine / retry / revert / accept) scoped to the failing language.</div>
+  </section>
+
+</div>
+</body>
+</html>
